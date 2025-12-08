@@ -1,0 +1,5 @@
+{
+  "name": "ExamWarp AI",
+  "description": "An advanced, adaptive exam simulator that analyzes study materials, generates structured mock exams, and provides personalized revision plans using Gemini AI.",
+  "requestFramePermissions": []
+}
