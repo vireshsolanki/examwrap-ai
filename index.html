@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,15 +15,15 @@
               mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
-              background: '#09090b',
-              surface: '#18181b',
-              border: '#27272a',
-              primary: '#2563eb', // Standard Blue
-              primaryHover: '#1d4ed8',
+              background: '#020617', // Slate 950
+              surface: '#0f172a',    // Slate 900
+              border: '#1e293b',     // Slate 800
+              primary: '#7c3aed',    // Violet 600
+              primaryHover: '#6d28d9', // Violet 700
               text: {
-                primary: '#f4f4f5',
-                secondary: '#a1a1aa',
-                tertiary: '#71717a'
+                primary: '#f8fafc',  // Slate 50
+                secondary: '#94a3b8', // Slate 400
+                tertiary: '#64748b'   // Slate 500
               }
             },
             animation: {
@@ -46,27 +46,55 @@
     </script>
     <style>
         :root {
-            --background: #09090b;
-            --surface: #18181b;
-            --border: #27272a;
+            --background: #020617;
+            --surface: #0f172a;
+            --border: #1e293b;
         }
 
         body {
              background-color: var(--background);
-             /* Subtle grid pattern for professional look */
-             background-image: linear-gradient(to right, #27272a 1px, transparent 1px),
-                               linear-gradient(to bottom, #27272a 1px, transparent 1px);
-             background-size: 40px 40px;
-             background-blend-mode: overlay;
-             /* Mask the grid to fade out */
-             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-             color: #f4f4f5;
+             min-height: 100vh;
+             color: #f8fafc;
              font-feature-settings: "ss01", "cv01";
              -webkit-font-smoothing: antialiased;
              -moz-osx-font-smoothing: grayscale;
+             position: relative;
+             z-index: 1;
+        }
+
+        /* Moving background to pseudo-element to fix content dullness */
+        body::before {
+             content: "";
+             position: fixed;
+             inset: 0;
+             z-index: -1;
+             background-color: var(--background);
+             background-image: 
+                radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.15), transparent 40%),
+                linear-gradient(to right, #1e293b 1px, transparent 1px),
+                linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+             background-size: 100% 100%, 40px 40px, 40px 40px;
+             /* Fade out grid at bottom */
+             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+             pointer-events: none;
+        }
+
+        /* Glassmorphism Utility */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
         
+        .glass-header {
+             background: rgba(2, 6, 23, 0.7);
+             backdrop-filter: blur(12px);
+             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
         /* Enterprise Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -76,19 +104,17 @@
             background: transparent; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #27272a; 
+            background: #334155; 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #3f3f46; 
+            background: #475569; 
         }
 
-        /* Utility classes */
         .fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
         
-        /* Form inputs specific reset */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 16px;
@@ -96,16 +122,53 @@
             border-radius: 50%;
             background: #ffffff;
             cursor: pointer;
-            box-shadow: 0 0 0 1px #27272a;
+            box-shadow: 0 0 0 1px #334155;
         }
 
-        /* Custom Scrollbar for inner containers */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #3f3f46;
+            background: #334155;
             border-radius: 2px;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Print Styles for PDF Generation */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-summary, #printable-summary * {
+                visibility: visible;
+            }
+            #printable-summary {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                color: black;
+                padding: 20px;
+            }
+            /* Hide buttons inside summary view when printing */
+            .no-print {
+                display: none !important;
+            }
+            /* Reset Text Colors for Print */
+            .prose {
+                color: black !important;
+            }
+            .prose h1, .prose h2, .prose h3, .prose strong {
+                color: black !important;
+            }
+            .prose p, .prose li {
+                color: #333 !important;
+            }
         }
     </style>
   <script type="importmap">

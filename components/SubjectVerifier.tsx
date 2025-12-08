@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SubjectAnalysis, SubjectContext } from '../types';
 import { Check, Edit2, BookOpen, GraduationCap, ArrowRight } from 'lucide-react';
@@ -69,7 +70,7 @@ const SubjectVerifier: React.FC<SubjectVerifierProps> = ({ initialAnalysis, onCo
 
             <button
                 type="submit"
-                className="w-full py-3.5 bg-primary hover:bg-primaryHover text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="w-full py-4 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold text-base rounded-lg transition-all active:scale-[0.98] duration-200 flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
             >
                 Confirm & Generate Syllabus
                 <ArrowRight className="w-4 h-4" />

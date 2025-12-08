@@ -61,7 +61,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           <button 
             type="submit"
             disabled={!name || !exam}
-            className="w-full mt-4 bg-primary hover:bg-primaryHover disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full mt-4 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 disabled:from-slate-700 disabled:to-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 duration-200 shadow-lg shadow-primary/20"
           >
             Get Started
             <ArrowRight className="w-4 h-4" />

@@ -2,7 +2,7 @@
 import React from 'react';
 import { ExamResult } from '../types';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle } from 'lucide-react';
+import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar } from 'lucide-react';
 
 interface ResultsDashboardProps {
   result: ExamResult;
@@ -27,26 +27,26 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
       {/* Celebration Header */}
       <div className="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div>
-           <h1 className="text-2xl font-semibold text-text-primary flex items-center gap-3">
+           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
              Assessment Complete
-             {scorePercentage > 80 && <span className="text-xl">🎉</span>}
+             {scorePercentage > 80 && <span className="text-2xl animate-bounce">🎉</span>}
            </h1>
            <p className="text-text-secondary text-sm mt-1">Here is how you performed against your target.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-             <div className="flex items-center bg-surface border border-border rounded-md p-1 mr-2">
+             <div className="flex items-center glass-panel rounded-xl p-1.5 mr-2 shadow-lg">
                  <button
                     onClick={onRetake}
-                    className="flex items-center gap-2 px-3 py-1.5 text-text-secondary hover:text-text-primary text-sm font-medium transition-colors hover:bg-background rounded"
+                    className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-white text-sm font-medium transition-all active:scale-95 duration-200 hover:bg-white/10 rounded-lg"
                  >
                      <RotateCcw className="w-3.5 h-3.5" />
                      Full Retake
                  </button>
-                 <div className="w-px h-4 bg-border mx-1"></div>
+                 <div className="w-px h-5 bg-white/10 mx-1"></div>
                  <button
                     onClick={onReattemptIncorrect}
-                    className="flex items-center gap-2 px-3 py-1.5 text-text-secondary hover:text-red-400 text-sm font-medium transition-colors hover:bg-background rounded"
+                    className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-red-400 text-sm font-medium transition-all active:scale-95 duration-200 hover:bg-white/10 rounded-lg"
                  >
                      <AlertTriangle className="w-3.5 h-3.5" />
                      Retry Incorrect
@@ -56,59 +56,59 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
              <button
                 onClick={onSummarize}
                 disabled={isSummarizing}
-                className="flex items-center gap-2 px-4 py-2 border border-border bg-surface hover:bg-background text-text-primary text-sm font-medium rounded-md transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-3 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white text-sm font-medium rounded-xl transition-all active:scale-95 duration-200 disabled:opacity-50 shadow-sm backdrop-blur-sm"
             >
-                {isSummarizing ? "Generating..." : "Summarize Material"}
+                {isSummarizing ? "Generating..." : "Summary"}
                 <FileText className="w-4 h-4" />
             </button>
             <button
                 onClick={onViewPlan}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primaryHover text-white text-sm font-medium rounded-md transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200"
             >
-                View Revision Strategy
-                <ArrowRight className="w-4 h-4" />
+                View Plan
+                <Calendar className="w-4 h-4" />
             </button>
         </div>
       </div>
 
       {/* XP Banner */}
       {result.xpEarned > 0 && (
-          <div className="mb-8 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-lg p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500">
-                  <Star className="w-5 h-5 fill-current" />
+          <div className="mb-8 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-xl p-4 flex items-center gap-4 animate-in slide-in-from-top-2">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                  <Star className="w-6 h-6 fill-current" />
               </div>
               <div>
                   <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-wide">Level Up Progress</h3>
-                  <p className="text-text-secondary text-sm">You earned <strong className="text-text-primary">+{result.xpEarned} XP</strong> from this session!</p>
+                  <p className="text-text-secondary text-sm">You earned <strong className="text-white">+{result.xpEarned} XP</strong> from this session!</p>
               </div>
           </div>
       )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 rounded-lg border border-border bg-surface">
-            <div className="text-xs text-text-tertiary uppercase font-medium mb-1">Overall Score</div>
+        <div className="glass-panel p-6 rounded-2xl">
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Overall Score</div>
             <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-text-primary">{scorePercentage}%</span>
+                <span className="text-4xl font-black text-white">{scorePercentage}%</span>
                 <span className="text-sm text-text-secondary">({result.score}/{result.totalQuestions})</span>
             </div>
         </div>
-        <div className="p-5 rounded-lg border border-border bg-surface">
-            <div className="text-xs text-text-tertiary uppercase font-medium mb-1">Strongest Domain</div>
-            <div className="text-lg font-medium text-text-primary truncate" title={result.strongTopics[0]}>
+        <div className="glass-panel p-6 rounded-2xl">
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Strongest Domain</div>
+            <div className="text-lg font-bold text-emerald-400 truncate" title={result.strongTopics[0]}>
                 {result.strongTopics[0] || 'N/A'}
             </div>
         </div>
-        <div className="p-5 rounded-lg border border-border bg-surface">
-            <div className="text-xs text-text-tertiary uppercase font-medium mb-1">Critical Weakness</div>
-            <div className="text-lg font-medium text-text-primary truncate text-red-400" title={result.weakTopics[0]}>
+        <div className="glass-panel p-6 rounded-2xl">
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Critical Weakness</div>
+            <div className="text-lg font-bold text-red-400 truncate" title={result.weakTopics[0]}>
                 {result.weakTopics[0] || 'None'}
             </div>
         </div>
-        <div className="p-5 rounded-lg border border-border bg-surface">
-            <div className="text-xs text-text-tertiary uppercase font-medium mb-1">Pacing Efficiency</div>
-            <div className="text-lg font-medium text-text-primary">
-                {result.timeManagementAnalysis?.includes("fast") ? "Fast" : "Balanced"}
+        <div className="glass-panel p-6 rounded-2xl">
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Pacing Efficiency</div>
+            <div className="text-lg font-bold text-violet-400">
+                {result.timeManagementAnalysis?.toLowerCase().includes("fast") ? "Fast ⚡" : "Balanced ⚖️"}
             </div>
         </div>
       </div>
@@ -118,35 +118,37 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
         
         {/* Left Col: Analysis */}
         <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 rounded-lg border border-border bg-surface">
-                <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-medium text-text-primary">AI Evaluation</h3>
+            <div className="glass-panel p-8 rounded-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-violet-500/20 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-violet-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">AI Evaluation</h3>
                 </div>
-                <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line border-l-2 border-violet-500/30 pl-4">
                     {result.feedback}
                 </p>
                 
-                <div className="mt-6 pt-6 border-t border-border">
+                <div className="mt-8 pt-6 border-t border-white/10">
                     <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-4 h-4 text-text-tertiary" />
-                        <h4 className="text-xs font-medium text-text-primary uppercase">Time Management</h4>
+                        <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wide">Time Management</h4>
                     </div>
-                    <p className="text-xs text-text-secondary">{result.timeManagementAnalysis}</p>
+                    <p className="text-xs text-text-tertiary">{result.timeManagementAnalysis}</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 rounded-lg border border-border bg-surface">
-                    <h3 className="text-sm font-medium text-text-primary mb-4 flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-red-500/50">
+                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-red-400" />
                         Concept Gaps
                     </h3>
                     {result.conceptGaps?.length > 0 ? (
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                             {result.conceptGaps.slice(0, 5).map((gap, i) => (
-                                <li key={i} className="text-xs text-text-secondary flex items-start gap-2">
-                                    <span className="mt-1 w-1 h-1 rounded-full bg-red-400 shrink-0" />
+                                <li key={i} className="text-xs text-slate-400 flex items-start gap-2 bg-white/5 p-2 rounded-lg">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
                                     {gap}
                                 </li>
                             ))}
@@ -156,16 +158,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                     )}
                 </div>
 
-                <div className="p-6 rounded-lg border border-border bg-surface">
-                    <h3 className="text-sm font-medium text-text-primary mb-4 flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-yellow-500/50">
+                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-yellow-400" />
                         Careless Errors
                     </h3>
                     {result.carelessMistakes?.length > 0 ? (
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                             {result.carelessMistakes.slice(0, 5).map((mistake, i) => (
-                                <li key={i} className="text-xs text-text-secondary flex items-start gap-2">
-                                    <span className="mt-1 w-1 h-1 rounded-full bg-yellow-400 shrink-0" />
+                                <li key={i} className="text-xs text-slate-400 flex items-start gap-2 bg-white/5 p-2 rounded-lg">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0" />
                                     {mistake}
                                 </li>
                             ))}
@@ -179,17 +181,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
 
         {/* Right Col: Charts */}
         <div className="lg:col-span-1">
-            <div className="p-6 rounded-lg border border-border bg-surface h-full flex flex-col justify-center items-center">
-                 <div className="w-48 h-48">
+            <div className="glass-panel p-6 rounded-2xl h-full flex flex-col justify-center items-center relative overflow-hidden">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
+                 <div className="w-56 h-56 relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
                                 data={accuracyData}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={2}
+                                innerRadius={70}
+                                outerRadius={90}
+                                paddingAngle={4}
                                 dataKey="value"
                                 stroke="none"
                             >
@@ -198,20 +201,27 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                             ))}
                             </Pie>
                             <Tooltip 
-                                contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '6px', fontSize: '12px' }}
-                                itemStyle={{ color: '#f4f4f5' }}
+                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', backdropFilter: 'blur(8px)' }}
+                                itemStyle={{ color: '#f8fafc' }}
                             />
                         </PieChart>
                     </ResponsiveContainer>
+                    
+                    {/* Center Text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-3xl font-black text-white">{scorePercentage}%</span>
+                        <span className="text-xs text-text-tertiary uppercase tracking-widest">Accuracy</span>
+                    </div>
                  </div>
-                 <div className="mt-6 flex gap-6 text-xs">
+                 
+                 <div className="mt-8 flex gap-8 text-xs relative z-10">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span className="text-text-secondary">Correct</span>
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                        <span className="text-text-secondary font-medium">Correct</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span className="text-text-secondary">Incorrect</span>
+                        <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                        <span className="text-text-secondary font-medium">Incorrect</span>
                     </div>
                 </div>
             </div>

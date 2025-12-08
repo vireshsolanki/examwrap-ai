@@ -59,6 +59,14 @@ export const getFullExamRecord = (id: string): FullExamRecord | null => {
   }
 };
 
+export const updateExamRevisionProgress = (examId: string, progress: string[]) => {
+  const record = getFullExamRecord(examId);
+  if (record) {
+    record.revisionProgress = progress;
+    saveFullExamRecord(record);
+  }
+};
+
 export const addXpAndHistory = (xp: number, historyItem: ExamHistoryItem, fullRecord?: FullExamRecord): UserProfile => {
   const current = loadUserProfile() || INITIAL_PROFILE;
   

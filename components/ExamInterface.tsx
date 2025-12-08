@@ -1,7 +1,49 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { Question, UserAnswer, Difficulty, QuestionType, ExamMode } from '../types';
 import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye } from 'lucide-react';
+
+// Memoized Timer Component to prevent parent re-renders
+const ExamTimer = memo(({ 
+    minutes, 
+    onTimeUp 
+}: { 
+    minutes: number, 
+    onTimeUp: () => void 
+}) => {
+    const [timeLeft, setTimeLeft] = useState(minutes * 60);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    onTimeUp();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [minutes, onTimeUp]);
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    return (
+        <div className={`
+            flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-lg transition-colors
+            ${timeLeft < 300 
+                ? 'border-red-500/30 bg-red-500/10 text-red-400 animate-pulse' 
+                : 'border-white/10 bg-black/40 text-text-secondary'}
+        `}>
+            <Clock className="w-4 h-4" />
+            <span className="font-mono text-sm font-bold">{formatTime(timeLeft)}</span>
+        </div>
+    );
+});
 
 interface ExamInterfaceProps {
   questions: Question[];
@@ -29,10 +71,6 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set());
   const [showPalette, setShowPalette] = useState(false);
   
-  // Total Exam Timer State
-  const [timeLeft, setTimeLeft] = useState(timeLimitMinutes * 60);
-  const timerRef = useRef<NodeJS.Timeout>(null);
-
   // Per Question Timer State
   const [questionTimeLeft, setQuestionTimeLeft] = useState<number | null>(timeLimitPerQuestionSeconds || null);
   const [isTimeUp, setIsTimeUp] = useState(false);
@@ -52,25 +90,6 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
           setTextInput(existingAnswer.textAnswer || '');
       }
   }, [currentIndex, isReviewMode]);
-
-  // Total Exam Timer Effect
-  useEffect(() => {
-    if (isReviewMode) return; // No timer in review
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          handleForceSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isReviewMode]);
 
   // Per Question Timer Logic
   useEffect(() => {
@@ -224,32 +243,26 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
      }
   };
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden fade-in bg-background">
+    <div className="flex flex-col h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden fade-in relative">
       
       {/* Header Bar */}
-      <div className="h-16 border-b border-border bg-surface flex items-center justify-between px-4 md:px-6 shrink-0 z-20 relative shadow-sm">
+      <div className="h-16 border-b border-white/5 bg-surface/30 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 shrink-0 z-20 relative shadow-sm">
         <div className="flex items-center gap-4">
              <button 
                 onClick={() => setShowPalette(!showPalette)}
-                className={`p-2 rounded-md transition-colors ${showPalette ? 'bg-primary text-white' : 'text-text-secondary hover:bg-background'}`}
+                className={`p-2 rounded-xl transition-all active:scale-95 duration-200 ${showPalette ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
                 title="Question Palette"
              >
                  {showPalette ? <List className="w-5 h-5" /> : <Grid className="w-5 h-5" />}
              </button>
-             <div className="h-6 w-px bg-border mx-2 hidden md:block"></div>
+             <div className="h-6 w-px bg-white/10 mx-2 hidden md:block"></div>
              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-                 <span className="text-sm font-medium text-text-primary">Question {currentIndex + 1}</span>
+                 <span className="text-sm font-medium text-white">Question {currentIndex + 1}</span>
                  <span className="text-xs text-text-tertiary hidden md:inline">of {questions.length}</span>
              </div>
              {isReviewMode && (
-                 <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs font-bold rounded uppercase border border-yellow-500/30">
+                 <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 text-xs font-bold rounded-full uppercase border border-yellow-500/20 tracking-wider">
                      Review Mode
                  </span>
              )}
@@ -257,20 +270,14 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
         {/* Total Timer (Hidden in Review) */}
         {!isReviewMode && (
-            <div className={`
-                flex items-center gap-2 px-3 py-1.5 rounded-full border 
-                ${timeLeft < 300 ? 'border-red-900/50 bg-red-900/10 text-red-400 animate-pulse' : 'border-border bg-background text-text-secondary'}
-            `}>
-                <Clock className="w-4 h-4" />
-                <span className="font-mono text-sm font-bold">{formatTime(timeLeft)}</span>
-            </div>
+            <ExamTimer minutes={timeLimitMinutes} onTimeUp={handleForceSubmit} />
         )}
 
         <button
             onClick={toggleReviewMark}
             className={`
-                flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors
-                ${markedForReview.has(currentQuestion.id) ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-secondary hover:text-text-primary hover:bg-background'}
+                flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all active:scale-95 duration-200
+                ${markedForReview.has(currentQuestion.id) ? 'text-yellow-500 bg-yellow-500/10 border border-yellow-500/30' : 'text-text-secondary hover:text-white hover:bg-white/5 border border-transparent'}
             `}
         >
             <Flag className={`w-4 h-4 ${markedForReview.has(currentQuestion.id) ? 'fill-current' : ''}`} />
@@ -280,9 +287,9 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
       {/* Per Question Progress Bar */}
       {!isReviewMode && questionTimeLeft !== null && timeLimitPerQuestionSeconds && (
-        <div className="w-full h-1.5 bg-background relative shrink-0">
+        <div className="w-full h-1 bg-black/50 relative shrink-0">
             <div 
-                className={`h-full transition-all duration-1000 ease-linear ${questionTimeLeft < 10 ? 'bg-red-500' : 'bg-primary'}`}
+                className={`h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_currentColor] ${questionTimeLeft < 10 ? 'bg-red-500' : 'bg-violet-500'}`}
                 style={{ width: `${(questionTimeLeft / timeLimitPerQuestionSeconds) * 100}%` }}
             />
         </div>
@@ -290,24 +297,24 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
       {/* Palette Overlay */}
       {showPalette && (
-          <div className="absolute top-16 left-0 w-full md:w-80 h-[calc(100vh-128px)] bg-surface border-r border-border z-30 overflow-y-auto p-4 shadow-xl animate-in slide-in-from-left duration-200">
-              <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-4">Question Navigator</h3>
+          <div className="absolute top-16 left-0 w-full md:w-80 h-[calc(100vh-128px)] glass-panel border-r border-white/10 z-30 overflow-y-auto p-4 shadow-2xl animate-in slide-in-from-left duration-200">
+              <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-4 px-1">Question Navigator</h3>
               <div className="grid grid-cols-4 gap-2">
                   {questions.map((q, idx) => {
                       const isAnswered = answers.some(a => a.questionId === q.id);
                       const isCurrent = idx === currentIndex;
                       const isMarked = markedForReview.has(q.id);
                       
-                      let baseClass = "h-10 rounded flex items-center justify-center text-xs font-medium border transition-all relative";
-                      if (isCurrent) baseClass += " border-primary text-primary ring-2 ring-primary/20";
+                      let baseClass = "h-10 rounded-lg flex items-center justify-center text-xs font-medium border transition-all relative active:scale-95 duration-150";
+                      if (isCurrent) baseClass += " border-violet-500 text-white ring-2 ring-violet-500/20 bg-violet-600/20 font-bold";
                       else if (isMarked) baseClass += " border-yellow-500/50 bg-yellow-500/10 text-yellow-500";
                       else if (isAnswered) baseClass += " border-emerald-500/50 bg-emerald-500/10 text-emerald-500";
-                      else baseClass += " border-border bg-background text-text-secondary hover:border-text-tertiary";
+                      else baseClass += " border-white/5 bg-white/5 text-text-secondary hover:border-white/20 hover:bg-white/10";
 
                       return (
                           <button key={q.id} onClick={() => navigateTo(idx)} className={baseClass}>
                               {idx + 1}
-                              {isMarked && <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-yellow-500" />}
+                              {isMarked && <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.5)]" />}
                           </button>
                       )
                   })}
@@ -316,46 +323,46 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
       )}
 
       {/* Split Screen Layout */}
-      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden relative">
         
         {/* Left Panel: Question Text (Scrollable) */}
-        <div className="lg:w-1/2 p-6 md:p-10 overflow-y-auto border-b lg:border-b-0 lg:border-r border-border bg-background/30">
+        <div className="lg:w-1/2 p-6 md:p-10 overflow-y-auto border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 custom-scrollbar scroll-smooth will-change-transform">
              <div className="max-w-2xl mx-auto lg:mx-0">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface border border-border text-text-secondary">
+                        <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-text-secondary">
                             {currentQuestion.type}
                         </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface border border-border text-text-secondary">
+                        <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-text-secondary">
                             {currentQuestion.difficulty}
                         </span>
                     </div>
                     {!isReviewMode && questionTimeLeft !== null && (
-                        <div className={`flex items-center gap-1.5 text-xs font-mono font-medium ${questionTimeLeft < 10 ? 'text-red-500' : 'text-text-tertiary'}`}>
+                        <div className={`flex items-center gap-1.5 text-xs font-mono font-medium ${questionTimeLeft < 10 ? 'text-red-400' : 'text-text-tertiary'}`}>
                             <Zap className="w-3.5 h-3.5" />
                             {isTimeUp ? "TIME UP" : `${questionTimeLeft}s`}
                         </div>
                     )}
                 </div>
 
-                <h1 className="text-xl md:text-2xl font-medium text-text-primary leading-relaxed mb-6 font-serif">
+                <h1 className="text-xl md:text-2xl font-medium text-white leading-relaxed mb-6 font-serif">
                     {currentQuestion.text}
                 </h1>
                 
                 {isReviewMode && (
-                    <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2 text-primary">
+                    <div className="mt-8 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2 text-emerald-400">
                             <Eye className="w-4 h-4" />
                             <h3 className="text-xs font-bold uppercase">Answer Key</h3>
                         </div>
                         {currentQuestion.type === QuestionType.MCQ ? (
-                            <p className="text-sm text-text-primary">
-                                Correct Option: <span className="font-semibold">{currentQuestion.options?.[currentQuestion.correctAnswerIndex || 0]}</span>
+                            <p className="text-sm text-white">
+                                Correct Option: <span className="font-semibold text-emerald-300">{currentQuestion.options?.[currentQuestion.correctAnswerIndex || 0]}</span>
                             </p>
                         ) : (
                             <div>
                                 <p className="text-xs text-text-secondary mb-1">Model Answer:</p>
-                                <p className="text-sm text-text-primary italic">{currentQuestion.modelAnswer}</p>
+                                <p className="text-sm text-emerald-200 italic">{currentQuestion.modelAnswer}</p>
                             </div>
                         )}
                     </div>
@@ -364,7 +371,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
         </div>
 
         {/* Right Panel: Inputs & Explanation (Scrollable) */}
-        <div className="lg:w-1/2 p-6 md:p-10 overflow-y-auto bg-surface/30">
+        <div className="lg:w-1/2 p-6 md:p-10 overflow-y-auto bg-surface/30 custom-scrollbar scroll-smooth will-change-transform">
             <div className="max-w-2xl mx-auto lg:mx-0">
                 
                 {/* Inputs */}
@@ -372,20 +379,20 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                     {currentQuestion.type === QuestionType.MCQ && currentQuestion.options ? (
                         currentQuestion.options.map((option, idx) => {
                             const isSelected = existingAnswer?.selectedOptionIndex === idx;
-                            let optionClass = "bg-surface border-border hover:border-text-secondary";
+                            let optionClass = "bg-white/5 border-white/10 hover:border-violet-500/50 hover:bg-white/10";
                             let iconClass = "border-text-tertiary";
                             
                             if (isAnswerChecked || isReviewMode) {
                                 if (idx === currentQuestion.correctAnswerIndex) {
-                                    optionClass = "bg-emerald-900/20 border-emerald-500 shadow-[0_0_0_1px_#10b981]";
+                                    optionClass = "bg-emerald-500/20 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]";
                                     iconClass = "border-emerald-500 bg-emerald-500 text-white";
                                 } else if (isSelected) {
-                                    optionClass = "bg-red-900/10 border-red-500";
+                                    optionClass = "bg-red-500/20 border-red-500";
                                     iconClass = "border-red-500 bg-red-500 text-white";
                                 }
                             } else if (isSelected) {
-                                optionClass = "bg-primary/10 border-primary shadow-[0_0_0_1px_#2563eb]";
-                                iconClass = "border-primary bg-primary text-white";
+                                optionClass = "bg-violet-600/20 border-violet-500 shadow-[0_0_15px_rgba(124,58,237,0.2)]";
+                                iconClass = "border-violet-500 bg-violet-600 text-white";
                             }
 
                             return (
@@ -394,7 +401,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                                     onClick={() => saveCurrentAnswer(idx)}
                                     disabled={isAnswerChecked || isTimeUp || isReviewMode}
                                     className={`
-                                        w-full text-left p-4 rounded-lg border transition-all flex items-start gap-4 group relative
+                                        w-full text-left p-5 rounded-2xl border transition-all flex items-start gap-4 group relative active:scale-[0.99] duration-150
                                         ${optionClass}
                                     `}
                                 >
@@ -407,25 +414,25 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                                         ) : (isAnswerChecked || isReviewMode) && isSelected && idx !== currentQuestion.correctAnswerIndex ? (
                                             <XCircle className="w-3.5 h-3.5" />
                                         ) : (
-                                            isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                            isSelected && <div className="w-2 h-2 bg-white rounded-full animate-in zoom-in duration-200" />
                                         )}
                                     </div>
-                                    <span className={`text-base leading-relaxed ${isSelected || ((isAnswerChecked || isReviewMode) && idx === currentQuestion.correctAnswerIndex) ? 'text-text-primary' : 'text-text-secondary'}`}>
+                                    <span className={`text-base leading-relaxed ${isSelected || ((isAnswerChecked || isReviewMode) && idx === currentQuestion.correctAnswerIndex) ? 'text-white' : 'text-text-secondary'}`}>
                                         {option}
                                     </span>
                                 </button>
                             )
                         })
                     ) : (
-                        <div className="relative">
+                        <div className="relative group">
                             <textarea
                                 value={textInput}
                                 onChange={(e) => setTextInput(e.target.value)}
                                 disabled={isAnswerChecked || isTimeUp || isReviewMode}
                                 placeholder="Type your answer here..."
                                 className={`
-                                    w-full min-h-[200px] bg-surface border rounded-lg p-4 text-text-primary focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none leading-relaxed font-mono text-sm
-                                    ${(isAnswerChecked || isReviewMode) ? 'border-text-tertiary opacity-70' : 'border-border'}
+                                    w-full min-h-[240px] bg-white/5 border rounded-2xl p-6 text-white focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none resize-none leading-relaxed font-mono text-sm transition-all
+                                    ${(isAnswerChecked || isReviewMode) ? 'border-white/10 opacity-70' : 'border-white/10 hover:border-white/20'}
                                 `}
                                 spellCheck={false}
                             />
@@ -434,7 +441,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                 </div>
 
                 {isTimeUp && !isReviewMode && (
-                    <div className="mt-4 p-4 bg-red-900/20 border border-red-900/50 rounded text-red-400 text-sm font-medium flex items-center gap-2">
+                    <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-medium flex items-center gap-2 animate-in slide-in-from-top-2">
                         <Clock className="w-4 h-4" />
                         Time's up! Moving to next question...
                     </div>
@@ -442,12 +449,12 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
                 {/* Explanation Panel */}
                 {(isAnswerChecked || isReviewMode) && (
-                    <div className="mt-8 p-6 rounded-lg bg-background border border-border animate-in slide-in-from-bottom-2">
-                        <div className="flex items-center gap-2 mb-3 text-primary">
+                    <div className="mt-8 p-6 rounded-2xl bg-white/5 border border-white/10 animate-in slide-in-from-bottom-4 shadow-lg">
+                        <div className="flex items-center gap-2 mb-3 text-violet-400">
                             <HelpCircle className="w-5 h-5" />
-                            <h3 className="text-sm font-semibold uppercase tracking-wider">Explanation</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-wider">Explanation</h3>
                         </div>
-                        <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
                             {currentQuestion.explanation}
                         </p>
                     </div>
@@ -457,13 +464,13 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
       </div>
 
       {/* Footer Navigation */}
-      <div className="h-20 border-t border-border bg-surface shrink-0 flex items-center justify-center px-6 z-20">
+      <div className="h-20 border-t border-white/10 bg-surface/90 backdrop-blur-md shrink-0 flex items-center justify-center px-6 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
         <div className="w-full max-w-6xl flex justify-between items-center">
              
              <button
                 onClick={() => navigateTo(currentIndex - 1)}
                 disabled={currentIndex === 0 || isAnalyzing || (isTimeUp && !isReviewMode)}
-                className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-background rounded-md transition-colors disabled:opacity-30"
+                className="flex items-center gap-2 px-6 py-2.5 text-text-secondary hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 rounded-xl transition-all active:scale-95 duration-200 disabled:opacity-30 disabled:active:scale-100 font-medium"
              >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden md:inline">Previous</span>
@@ -474,7 +481,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                     <button
                         onClick={handleCheckAnswer}
                         disabled={isAnswerChecked || isAnalyzing || isTimeUp}
-                        className="hidden md:block px-6 py-2.5 text-text-primary font-medium hover:bg-background rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-border"
+                        className="hidden md:block px-6 py-2.5 text-text-primary font-medium bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-xl transition-all active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                     >
                         Check Answer
                     </button>
@@ -484,7 +491,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                      <button
                         onClick={handleSubmitExam}
                         disabled={isAnalyzing}
-                        className="px-8 py-2.5 bg-primary hover:bg-primaryHover text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-2"
+                        className="px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200 flex items-center gap-2"
                     >
                         {isReviewMode ? "Close Review" : (isAnalyzing ? "Submitting..." : "Finish Exam")}
                         {!isAnalyzing && <CheckCircle className="w-4 h-4" />}
@@ -493,7 +500,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                     <button
                         onClick={() => navigateTo(currentIndex + 1)}
                         disabled={isAnalyzing || (isTimeUp && !isReviewMode)}
-                        className="px-8 py-2.5 bg-primary hover:bg-primaryHover text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-2"
+                        className="px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200 flex items-center gap-2"
                     >
                         Next
                         <ArrowRight className="w-4 h-4" />

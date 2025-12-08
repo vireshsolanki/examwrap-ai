@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Topic, Question, Difficulty, ExamResult, RevisionPlan, UserAnswer, QuestionType, SubjectAnalysis, ExamConfig, ExamProbability, SubjectContext } from '../types';
 
@@ -153,24 +152,50 @@ export const analyzePerformance = async (
   answers: UserAnswer[]
 ): Promise<{ result: ExamResult, plan: RevisionPlan }> => {
   
+  // Deterministic Grading for MCQs
   const performanceData = questions.map(q => {
     const ans = answers.find(a => a.questionId === q.id);
+    let isCorrectStatus = "NEEDS_EVALUATION";
+    let userAnswerText = "Skipped";
+
+    // Format User Answer Text
+    if (ans) {
+        if (q.type === QuestionType.MCQ && ans.selectedOptionIndex !== undefined) {
+            userAnswerText = q.options?.[ans.selectedOptionIndex] || "Unknown Option";
+            // Strict Local Check
+            if (ans.selectedOptionIndex === q.correctAnswerIndex) {
+                isCorrectStatus = "CORRECT";
+            } else {
+                isCorrectStatus = "INCORRECT";
+            }
+        } else if (ans.textAnswer) {
+            userAnswerText = ans.textAnswer;
+        }
+    }
+
     return {
       question: q.text,
       type: q.type,
-      userAnswer: ans ? (ans.textAnswer || `Option ${ans.selectedOptionIndex}`) : "Skipped",
+      userAnswer: userAnswerText,
       correctModel: q.modelAnswer || q.options?.[q.correctAnswerIndex || 0],
-      probability: q.probability
+      probability: q.probability,
+      topic: q.topicName,
+      status: isCorrectStatus // Pass explicit status to AI
     };
   });
 
   const prompt = `
-    Grade this exam. 
-    1. Score it. 
-    2. Analyze if the student missed "High Probability" questions (Critical warning).
-    3. Detect "Careless Mistakes" vs "Concept Gaps".
-    4. Generate a 7-day revision plan.
-    5. Calculate XP based on difficulty (Easy=10, Medium=20, Hard=30 per correct answer).
+    Grade this exam based on the provided data.
+    
+    CRITICAL GRADING RULES:
+    1. For questions marked "CORRECT" or "INCORRECT" in the status field, YOU MUST USE THAT RESULT. Do not re-evaluate them.
+    2. Only evaluate questions marked "NEEDS_EVALUATION" (Short/Long answers). Compare user answer to model answer.
+    
+    OUTPUT TASKS:
+    1. Calculate Final Score (Sum of Correct MCQs + Points awarded for Text answers).
+    2. Analyze patterns for "Concept Gaps" vs "Careless Mistakes".
+    3. Generate a 7-day revision plan.
+    4. Calculate XP (Easy=10, Medium=20, Hard=30 per correct answer).
     
     Data: ${JSON.stringify(performanceData)}
   `;

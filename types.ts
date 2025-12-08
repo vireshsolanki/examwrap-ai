@@ -131,6 +131,8 @@ export interface FullExamRecord {
   userAnswers: UserAnswer[];
   result: ExamResult;
   config: ExamConfig;
+  plan?: RevisionPlan;
+  revisionProgress?: string[]; // Array of completed task IDs (e.g. "1-0")
 }
 
 export interface UserProfile {

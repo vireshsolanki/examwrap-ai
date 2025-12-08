@@ -175,10 +175,10 @@ const ExamConfig: React.FC<ExamConfigProps> = ({ analysis, topics, onStart }) =>
                                 key={type.id}
                                 onClick={() => setSelectedType(type.id)}
                                 className={`
-                                    cursor-pointer p-3 rounded border transition-all select-none relative overflow-hidden
+                                    cursor-pointer p-4 rounded-lg border transition-all select-none relative overflow-hidden active:scale-[0.98] duration-200
                                     ${selectedType === type.id
                                         ? 'border-primary bg-primary/5 shadow-[0_0_0_1px_#2563eb]' 
-                                        : 'border-border bg-background hover:border-text-secondary'
+                                        : 'border-border bg-background hover:border-text-secondary hover:bg-background/80'
                                     }
                                 `}
                             >
@@ -211,8 +211,8 @@ const ExamConfig: React.FC<ExamConfigProps> = ({ analysis, topics, onStart }) =>
                     <label 
                         key={topic.id}
                         className={`
-                            flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors group
-                            ${selectedTopics.includes(topic.name) ? 'bg-background' : 'hover:bg-background/50'}
+                            flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all active:scale-[0.99] duration-150 group
+                            ${selectedTopics.includes(topic.name) ? 'bg-background shadow-inner' : 'hover:bg-background/50'}
                         `}
                     >
                         <div className={`
@@ -242,7 +242,7 @@ const ExamConfig: React.FC<ExamConfigProps> = ({ analysis, topics, onStart }) =>
         <div className="flex justify-end">
             <button
                 onClick={handleStart}
-                className="px-8 py-3 bg-primary hover:bg-primaryHover text-white text-sm font-medium rounded-md shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                className="px-10 py-4 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white text-base font-bold rounded-lg shadow-xl shadow-primary/25 transition-all active:scale-95 duration-200 animate-in slide-in-from-bottom-2"
             >
                 Generate Assessment
             </button>

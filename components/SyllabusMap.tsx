@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Topic } from '../types';
 import { ChevronRight, Play } from 'lucide-react';
@@ -21,7 +22,7 @@ const SyllabusMap: React.FC<SyllabusMapProps> = ({ topics, onStartExam, isGenera
         <button
           onClick={onStartExam}
           disabled={isGenerating}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primaryHover text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white text-sm font-bold rounded-lg transition-all active:scale-95 duration-200 shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed"
         >
            {isGenerating ? "Initializing Exam..." : "Start Assessment"}
            {!isGenerating && <Play className="w-3.5 h-3.5 fill-current" />}
