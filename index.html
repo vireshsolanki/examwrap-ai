@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ExamWarp AI | Enterprise Exam Simulator</title>
+    <title>ExamWarp | AI Exam Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
@@ -15,11 +15,13 @@
               mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
-              background: '#020617', // Slate 950
-              surface: '#0f172a',    // Slate 900
+              background: '#030712', // Void Black
+              surface: '#0f172a',    // Deep Slate
               border: '#1e293b',     // Slate 800
-              primary: '#7c3aed',    // Violet 600
-              primaryHover: '#6d28d9', // Violet 700
+              primary: '#06b6d4',    // Cyan 500 (Intellect)
+              primaryHover: '#0891b2', // Cyan 600
+              secondary: '#8b5cf6',  // Violet 500 (Creative)
+              accent: '#f43f5e',     // Rose 500 (Alert)
               text: {
                 primary: '#f8fafc',  // Slate 50
                 secondary: '#94a3b8', // Slate 400
@@ -29,6 +31,7 @@
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-out forwards',
                 'slide-up': 'slideUp 0.5s ease-out forwards',
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -46,23 +49,22 @@
     </script>
     <style>
         :root {
-            --background: #020617;
-            --surface: #0f172a;
-            --border: #1e293b;
+            --background: #030712;
+            --primary-glow: rgba(6, 182, 212, 0.15);
         }
 
         body {
              background-color: var(--background);
              min-height: 100vh;
              color: #f8fafc;
-             font-feature-settings: "ss01", "cv01";
+             font-feature-settings: "cv11", "ss01";
              -webkit-font-smoothing: antialiased;
              -moz-osx-font-smoothing: grayscale;
              position: relative;
              z-index: 1;
         }
 
-        /* Moving background to pseudo-element to fix content dullness */
+        /* Neural Network Dot Pattern Background */
         body::before {
              content: "";
              position: fixed;
@@ -70,45 +72,74 @@
              z-index: -1;
              background-color: var(--background);
              background-image: 
-                radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.15), transparent 40%),
-                linear-gradient(to right, #1e293b 1px, transparent 1px),
-                linear-gradient(to bottom, #1e293b 1px, transparent 1px);
-             background-size: 100% 100%, 40px 40px, 40px 40px;
-             /* Fade out grid at bottom */
-             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+                radial-gradient(var(--primary-glow) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+             background-size: 40px 40px;
+             background-position: 0 0, 20px 20px;
+             /* Fade out at bottom */
+             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
              pointer-events: none;
         }
 
-        /* Glassmorphism Utility */
+        /* Top Glow Spot */
+        body::after {
+            content: "";
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 200px;
+            background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        /* Info Genius Glass Panel */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Tech Border Highlight on Top */
+        .glass-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+            opacity: 0.5;
         }
         
         .glass-header {
-             background: rgba(2, 6, 23, 0.7);
+             background: rgba(3, 7, 18, 0.85);
              backdrop-filter: blur(12px);
              border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* Enterprise Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: transparent; 
         }
         ::-webkit-scrollbar-thumb {
             background: #334155; 
-            border-radius: 4px;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569; 
+            background: #06b6d4; /* Cyan hover */
         }
 
         .fade-in {
@@ -120,9 +151,10 @@
             height: 16px;
             width: 16px;
             border-radius: 50%;
-            background: #ffffff;
+            background: #06b6d4;
             cursor: pointer;
-            box-shadow: 0 0 0 1px #334155;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+            border: 2px solid #fff;
         }
 
         .custom-scrollbar::-webkit-scrollbar {
@@ -138,7 +170,7 @@
             scroll-behavior: smooth;
         }
 
-        /* Print Styles for PDF Generation */
+        /* Print Styles */
         @media print {
             body * {
                 visibility: hidden;
@@ -155,19 +187,11 @@
                 color: black;
                 padding: 20px;
             }
-            /* Hide buttons inside summary view when printing */
             .no-print {
                 display: none !important;
             }
-            /* Reset Text Colors for Print */
             .prose {
                 color: black !important;
-            }
-            .prose h1, .prose h2, .prose h3, .prose strong {
-                color: black !important;
-            }
-            .prose p, .prose li {
-                color: #333 !important;
             }
         }
     </style>
@@ -180,12 +204,14 @@
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "pdfjs-dist": "https://aistudiocdn.com/pdfjs-dist@^5.4.449"
+    "pdfjs-dist": "https://aistudiocdn.com/pdfjs-dist@^5.4.449",
+    "next/": "https://esm.sh/next@^16.0.8/"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

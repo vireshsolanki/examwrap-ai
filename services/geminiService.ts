@@ -5,6 +5,26 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
+// Helper to clean potential Markdown code blocks from JSON string
+const cleanJSON = (text: string | undefined): string => {
+  if (!text) return "{}";
+  let cleaned = text.trim();
+  // Remove markdown wrapping like ```json ... ```
+  if (cleaned.startsWith('```')) {
+     cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '');
+  }
+  return cleaned.trim();
+};
+
+const safeParseJSON = (text: string | undefined, fallback: any) => {
+    try {
+        return JSON.parse(cleanJSON(text));
+    } catch (e) {
+        console.warn("Failed to parse JSON:", e);
+        return fallback;
+    }
+};
+
 // 1. Identify Subject (Initial Guess)
 export const identifySubject = async (content: string): Promise<SubjectAnalysis> => {
   const prompt = `
@@ -34,7 +54,7 @@ export const identifySubject = async (content: string): Promise<SubjectAnalysis>
     }
   });
 
-  return JSON.parse(response.text || "{}");
+  return safeParseJSON(response.text, {});
 };
 
 // 2. Generate Syllabus Map (Context Aware)
@@ -75,7 +95,7 @@ export const generateSyllabus = async (content: string, context: SubjectContext)
     }
   });
 
-  return JSON.parse(response.text || "[]");
+  return safeParseJSON(response.text, []);
 };
 
 // 3. Generate Questions (Dynamic Config)
@@ -137,7 +157,7 @@ export const generateExamQuestions = async (
     }
   });
 
-  const rawQuestions = JSON.parse(response.text || "[]");
+  const rawQuestions = safeParseJSON(response.text, []);
   
   return rawQuestions.map((q: any, index: number) => ({
     ...q,
@@ -245,7 +265,7 @@ export const analyzePerformance = async (
     }
   });
 
-  return JSON.parse(response.text || "{}");
+  return safeParseJSON(response.text, {});
 };
 
 // 5. Generate Smart Summary

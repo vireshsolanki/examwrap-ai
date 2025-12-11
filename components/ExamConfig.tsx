@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SubjectContext, Topic, QuestionType, ExamConfig as ConfigType } from '../types';
 import { Sliders, BookOpen, Clock, Zap } from 'lucide-react';
@@ -200,7 +199,7 @@ const ExamConfig: React.FC<ExamConfigProps> = ({ analysis, topics, onStart }) =>
         <div className="p-6 rounded-lg border border-border bg-surface flex flex-col h-[400px]">
              <div className="flex items-center gap-2 mb-4 border-b border-border pb-4">
                 <BookOpen className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-medium text-text-primary">Domain Focus</h3>
+                <h3 className="text-sm font-medium text-text-primary">Select Topics</h3>
                 <span className="ml-auto text-xs text-text-tertiary">
                     {selectedTopics.length === 0 ? "Covering All Topics" : `Focusing on ${selectedTopics.length} Topics`}
                 </span>

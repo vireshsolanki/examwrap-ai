@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ExamResult } from '../types';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
@@ -28,7 +27,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
       <div className="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div>
            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-             Assessment Complete
+             Exam Results
              {scorePercentage > 80 && <span className="text-2xl animate-bounce">🎉</span>}
            </h1>
            <p className="text-text-secondary text-sm mt-1">Here is how you performed against your target.</p>
@@ -78,7 +77,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                   <Star className="w-6 h-6 fill-current" />
               </div>
               <div>
-                  <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-wide">Level Up Progress</h3>
+                  <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-wide">Level Up!</h3>
                   <p className="text-text-secondary text-sm">You earned <strong className="text-white">+{result.xpEarned} XP</strong> from this session!</p>
               </div>
           </div>
@@ -87,26 +86,26 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Overall Score</div>
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Final Score</div>
             <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-black text-white">{scorePercentage}%</span>
                 <span className="text-sm text-text-secondary">({result.score}/{result.totalQuestions})</span>
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Strongest Domain</div>
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Best Topic</div>
             <div className="text-lg font-bold text-emerald-400 truncate" title={result.strongTopics[0]}>
                 {result.strongTopics[0] || 'N/A'}
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Critical Weakness</div>
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Needs Improvement</div>
             <div className="text-lg font-bold text-red-400 truncate" title={result.weakTopics[0]}>
                 {result.weakTopics[0] || 'None'}
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Pacing Efficiency</div>
+            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Time Efficiency</div>
             <div className="text-lg font-bold text-violet-400">
                 {result.timeManagementAnalysis?.toLowerCase().includes("fast") ? "Fast ⚡" : "Balanced ⚖️"}
             </div>
@@ -123,7 +122,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                     <div className="p-2 bg-violet-500/20 rounded-lg">
                         <TrendingUp className="w-5 h-5 text-violet-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-white">AI Evaluation</h3>
+                    <h3 className="text-lg font-bold text-white">AI Feedback</h3>
                 </div>
                 <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line border-l-2 border-violet-500/30 pl-4">
                     {result.feedback}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Topic } from '../types';
 import { ChevronRight, Play } from 'lucide-react';
@@ -14,9 +13,9 @@ const SyllabusMap: React.FC<SyllabusMapProps> = ({ topics, onStartExam, isGenera
     <div className="max-w-5xl mx-auto mt-8 px-6 fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-semibold text-text-primary">Syllabus Breakdown</h2>
+          <h2 className="text-2xl font-semibold text-text-primary">Syllabus Map</h2>
           <p className="text-text-secondary text-sm mt-1">
-            Identified {topics.length} core modules from the source material.
+            Identified {topics.length} core topics from the source material.
           </p>
         </div>
         <button
@@ -32,7 +31,7 @@ const SyllabusMap: React.FC<SyllabusMapProps> = ({ topics, onStartExam, isGenera
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-border bg-background/50 text-xs font-medium text-text-secondary uppercase tracking-wider">
             <div className="col-span-1">#</div>
-            <div className="col-span-5">Module Name</div>
+            <div className="col-span-5">Topic Name</div>
             <div className="col-span-6">Subtopics / Key Concepts</div>
         </div>
         

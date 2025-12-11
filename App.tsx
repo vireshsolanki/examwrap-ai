@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, useEffect } from 'react';
 import { 
   AppView, 
@@ -17,7 +16,7 @@ import {
 import * as GeminiService from './services/geminiService';
 import * as StorageService from './services/storageService';
 import LoadingScreen from './components/LoadingScreen';
-import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight } from 'lucide-react';
+import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight, Cpu } from 'lucide-react';
 
 // Lazy Load Components
 const FileUpload = React.lazy(() => import('./components/FileUpload'));
@@ -79,7 +78,7 @@ const App: React.FC = () => {
 
   const handleUpload = async (content: string) => {
     setUploadedContent(content);
-    setLoadingState({ msg: "Analyzing Document", sub: "Detecting subject matter and context..." });
+    setLoadingState({ msg: "Analyzing Data Stream", sub: "Parsing content structure and context..." });
     try {
         const analysis = await GeminiService.identifySubject(content);
         setSubjectAnalysis(analysis);
@@ -94,7 +93,7 @@ const App: React.FC = () => {
 
   const handleSubjectConfirmed = async (context: SubjectContext) => {
     setConfirmedContext(context);
-    setLoadingState({ msg: "Constructing Syllabus", sub: "Mapping core concepts for " + context.subjectName + "..." });
+    setLoadingState({ msg: "Mapping Knowledge Graph", sub: "Constructing syllabus topology for " + context.subjectName + "..." });
     try {
         const syllabus = await GeminiService.generateSyllabus(uploadedContent, context);
         setTopics(syllabus);
@@ -115,7 +114,7 @@ const App: React.FC = () => {
     if (!confirmedContext) return;
     setExamConfig(config);
     setExamMode(ExamMode.PRACTICE);
-    setLoadingState({ msg: "Generating Assessment", sub: "Synthesizing questions based on probability..." });
+    setLoadingState({ msg: "Synthesizing Assessment", sub: "Generating question matrix..." });
     try {
         const generatedQuestions = await GeminiService.generateExamQuestions(uploadedContent, topics, config, confirmedContext);
         setQuestions(generatedQuestions);
@@ -146,7 +145,7 @@ const App: React.FC = () => {
           const subsetQuestions = questions.filter(q => wrongQuestionIds.includes(q.id));
           
           if (subsetQuestions.length === 0) {
-              alert("Great job! You got all MCQs correct. Starting a full retake instead.");
+              alert("Perfect score on MCQs detected. Initiating full module retake.");
               setQuestions([...questions]); 
           } else {
               setQuestions(subsetQuestions);
@@ -158,7 +157,6 @@ const App: React.FC = () => {
       setView(AppView.EXAM);
   };
 
-  // Logic to Review a Past Exam
   const handleReviewHistory = (id: string) => {
       const record = StorageService.getFullExamRecord(id);
       if (record) {
@@ -172,7 +170,6 @@ const App: React.FC = () => {
       }
   };
 
-  // Logic to View Result Dashboard from History
   const handleViewResultHistory = (id: string) => {
       const record = StorageService.getFullExamRecord(id);
       if (record && record.result) {
@@ -182,7 +179,6 @@ const App: React.FC = () => {
           setExamConfig(record.config);
           setConfirmedContext({ subjectName: record.subjectName, examType: record.examType });
           
-          // Set active record logic for revision tracking
           setActiveRecordId(record.id);
           setRevisionProgress(record.revisionProgress || []);
           
@@ -192,7 +188,6 @@ const App: React.FC = () => {
       }
   };
 
-  // Logic to View Revision Plan from History
   const handleViewPlanHistory = (id: string) => {
       const record = StorageService.getFullExamRecord(id);
       if (record && record.plan) {
@@ -202,11 +197,10 @@ const App: React.FC = () => {
           setRevisionProgress(record.revisionProgress || []);
           setView(AppView.REVISION);
       } else {
-          alert("No revision plan found for this exam.");
+          alert("No revision plan found.");
       }
   };
 
-  // Update Revision Progress
   const handleRevisionProgressUpdate = (taskId: string, isChecked: boolean) => {
       if (!activeRecordId) return;
       
@@ -221,12 +215,11 @@ const App: React.FC = () => {
       StorageService.updateExamRevisionProgress(activeRecordId, newProgress);
   };
 
-  // Logic to Retake a Past Exam
   const handleRetakeHistory = (id: string) => {
       const record = StorageService.getFullExamRecord(id);
       if (record) {
           setQuestions(record.questions);
-          setUserAnswers([]); // Clear answers for retake
+          setUserAnswers([]); 
           setExamMode(ExamMode.PRACTICE);
           setExamConfig(record.config);
           setConfirmedContext({ subjectName: record.subjectName, examType: record.examType });
@@ -244,7 +237,7 @@ const App: React.FC = () => {
     }
 
     setUserAnswers(answers);
-    setLoadingState({ msg: "Evaluating Performance", sub: "Detecting patterns and gaps..." });
+    setLoadingState({ msg: "Evaluating Performance", sub: "Calculating accuracy and identifying gaps..." });
     try {
         const { result: examResult, plan: revisionPlan } = await GeminiService.analyzePerformance(questions, answers);
         
@@ -276,7 +269,7 @@ const App: React.FC = () => {
 
         setResult(examResult);
         setPlan(revisionPlan);
-        setActiveRecordId(historyId); // Set ID for tracking
+        setActiveRecordId(historyId); 
         setRevisionProgress([]);
         setView(AppView.RESULTS);
     } catch (e) {
@@ -289,7 +282,7 @@ const App: React.FC = () => {
 
   const handleGenerateSummary = async () => {
     if (!confirmedContext) return;
-    setLoadingState({ msg: "Summarizing Material", sub: "Compressing knowledge into key insights..." });
+    setLoadingState({ msg: "Generating Intelligence Brief", sub: "Compressing key data points..." });
     try {
         const summary = await GeminiService.generateSmartSummary(uploadedContent, confirmedContext);
         setSummaryMarkdown(summary);
@@ -317,7 +310,6 @@ const App: React.FC = () => {
 
   const handleSmartResume = () => {
       setIsMenuOpen(false);
-      // Smart Navigation Logic
       if (result) {
           setView(AppView.RESULTS);
       } else if (questions.length > 0) {
@@ -329,23 +321,22 @@ const App: React.FC = () => {
       } else if (subjectAnalysis) {
           setView(AppView.VERIFY_SUBJECT);
       } else {
-          // Fallback if session data is missing but context exists
           setView(AppView.UPLOAD);
       }
   };
 
   const handleNewSession = () => {
       if (view !== AppView.DASHBOARD && confirmedContext) {
-        if (!window.confirm("Start a new session? Your current progress will be lost.")) {
+        if (!window.confirm("Start new session? Current progress will be lost.")) {
             return;
         }
       }
-      handleEndSession(false); // Clean reset
+      handleEndSession(false); 
       setIsMenuOpen(false);
   };
 
   const handleEndSession = (confirm = true) => {
-      if (confirm && !window.confirm("Are you sure you want to end this session? All syllabus and question data will be cleared.")) {
+      if (confirm && !window.confirm("End current session? All data will be cleared.")) {
           return;
       }
       setUploadedContent("");
@@ -362,41 +353,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans bg-background text-text-primary selection:bg-violet-500/30 selection:text-violet-200">
+    <div className="min-h-screen font-sans bg-background text-text-primary selection:bg-primary/30 selection:text-cyan-200">
         
         {loadingState && <LoadingScreen message={loadingState.msg} subMessage={loadingState.sub} />}
 
-        {/* Glass Header */}
-        <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300">
+        {/* Info Genius Header */}
+        <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20">
             <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-                <div className="flex items-center gap-2.5 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
-                        <Layers className="w-5 h-5 text-white" />
+                <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
+                        <Cpu className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">ExamWarp</span>
+                    <div className="flex flex-col">
+                        <span className="font-bold text-lg tracking-tight text-white leading-none">EXAMWARP</span>
+                        <span className="text-[10px] text-primary font-mono tracking-widest leading-none">AI SIMULATOR</span>
+                    </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                     {userProfile && (
                         <>
-                             {/* Desktop Status */}
+                             {/* Desktop Status Bar */}
                              {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && (
-                                <div className="hidden md:flex items-center gap-3 text-sm text-text-secondary border-r border-white/10 pr-4">
-                                    <span className="font-medium text-white">{confirmedContext.subjectName}</span>
-                                    <span className="text-[10px] uppercase font-bold tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded text-emerald-400">Active</span>
+                                <div className="hidden md:flex items-center gap-3 text-sm border-r border-white/10 pr-4">
+                                    <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        Active
+                                    </div>
                                 </div>
                              )}
                              
-                             {/* XP Badge */}
+                             {/* XP Module */}
                              <div 
-                                className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/10 transition-all active:scale-95 group"
+                                className="hidden md:flex items-center gap-2 bg-background border border-border px-3 py-1.5 rounded-md cursor-pointer hover:border-primary/50 transition-all active:scale-95 group shadow-sm"
                                 onClick={handleNavigateToDashboard}
                              >
-                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-current group-hover:scale-110 transition-transform" />
-                                <span className="text-xs font-bold text-white">{userProfile.xp} XP</span>
+                                <Star className="w-3.5 h-3.5 text-primary fill-current group-hover:rotate-12 transition-transform" />
+                                <span className="text-xs font-bold text-white font-mono">{userProfile.xp} XP</span>
                              </div>
 
-                             {/* Hamburger Menu Trigger */}
+                             {/* Menu Trigger */}
                              <button 
                                 onClick={() => setIsMenuOpen(true)}
                                 className="p-2 text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors active:scale-90"
@@ -409,86 +406,83 @@ const App: React.FC = () => {
             </div>
         </header>
 
-        {/* Slide-out Menu Overlay */}
+        {/* Info Genius Slide-out Menu */}
         {isMenuOpen && (
             <div className="fixed inset-0 z-50 flex justify-end">
-                {/* Backdrop */}
                 <div 
-                    className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
+                    className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
                     onClick={() => setIsMenuOpen(false)}
                 />
                 
-                {/* Menu Drawer */}
-                <div className="relative w-full max-w-sm glass-panel h-full border-l border-white/10 animate-in slide-in-from-right duration-300 flex flex-col shadow-2xl">
-                    <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                        <span className="font-bold text-lg text-white">Menu</span>
+                <div className="relative w-full max-w-sm glass-panel h-full border-l border-primary/20 animate-in slide-in-from-right duration-300 flex flex-col shadow-2xl">
+                    <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
+                        <span className="font-bold text-lg text-white font-mono tracking-wide">MAIN MENU</span>
                         <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-90">
                             <X className="w-5 h-5 text-text-secondary" />
                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                        {/* User Snapshot */}
+                        {/* User Profile Card */}
                         {userProfile && (
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
+                            <div className="bg-gradient-to-br from-surface to-black border border-border rounded-xl p-5 flex items-center gap-4 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+                                <div className="w-12 h-12 rounded-lg bg-surface border border-primary/30 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                                     <User className="w-6 h-6" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-white">{userProfile.name}</h3>
-                                    <p className="text-xs text-text-secondary">{userProfile.targetExam}</p>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="text-xs font-bold text-yellow-400 flex items-center gap-1 bg-yellow-500/10 px-2 py-0.5 rounded">
-                                            <Star className="w-3 h-3 fill-current" />
-                                            {userProfile.xp} XP
+                                <div className="relative z-10">
+                                    <h3 className="font-bold text-white text-lg">{userProfile.name}</h3>
+                                    <p className="text-xs text-text-secondary mb-1">{userProfile.targetExam}</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20 font-mono">
+                                            LVL {userProfile.level}
                                         </span>
-                                        <span className="text-xs text-text-tertiary font-mono">Lvl {userProfile.level}</span>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Navigation Links */}
+                        {/* Nav Links */}
                         <div className="space-y-2">
-                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-2">Navigation</h4>
+                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-widest mb-3 px-2 font-mono">Navigation</h4>
                             
-                            <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all active:scale-95 text-left group">
-                                <Home className="w-5 h-5 text-text-secondary group-hover:text-violet-400 transition-colors" />
-                                <span className="text-text-primary group-hover:text-violet-400 font-medium transition-colors">Dashboard</span>
+                            <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-3.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-95 text-left group">
+                                <Home className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors" />
+                                <span className="text-text-primary group-hover:text-white font-medium transition-colors">Dashboard</span>
                                 <ChevronRight className="w-4 h-4 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
 
                             {confirmedContext && (
-                                <button onClick={handleSmartResume} className="w-full flex items-center gap-3 p-3 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 transition-all active:scale-95 text-left group">
-                                    <BookOpen className="w-5 h-5 text-violet-400" />
+                                <button onClick={handleSmartResume} className="w-full flex items-center gap-3 p-3.5 rounded-lg bg-primary/10 hover:bg-primary/15 border border-primary/30 transition-all active:scale-95 text-left group shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+                                    <BookOpen className="w-5 h-5 text-primary" />
                                     <div>
-                                        <span className="text-violet-300 font-bold block text-sm">Resume Session</span>
-                                        <span className="text-[10px] text-violet-200/60 uppercase tracking-wide">{confirmedContext.subjectName}</span>
+                                        <span className="text-primary font-bold block text-sm">Resume Session</span>
+                                        <span className="text-[10px] text-primary/70 uppercase tracking-wide">{confirmedContext.subjectName}</span>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-violet-400 ml-auto" />
+                                    <ChevronRight className="w-4 h-4 text-primary ml-auto" />
                                 </button>
                             )}
 
-                            <button onClick={handleNewSession} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all active:scale-95 text-left group">
+                            <button onClick={handleNewSession} className="w-full flex items-center gap-3 p-3.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-95 text-left group">
                                 <PlusCircle className="w-5 h-5 text-text-secondary group-hover:text-emerald-400 transition-colors" />
-                                <span className="text-text-primary group-hover:text-emerald-400 font-medium transition-colors">New Session</span>
+                                <span className="text-text-primary group-hover:text-white font-medium transition-colors">New Session</span>
                             </button>
                             
-                             <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all active:scale-95 text-left group">
-                                <RotateCcw className="w-5 h-5 text-text-secondary group-hover:text-blue-400 transition-colors" />
-                                <span className="text-text-primary group-hover:text-blue-400 font-medium transition-colors">Exam History</span>
+                             <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-3.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-95 text-left group">
+                                <RotateCcw className="w-5 h-5 text-text-secondary group-hover:text-secondary transition-colors" />
+                                <span className="text-text-primary group-hover:text-white font-medium transition-colors">Exam History</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className="p-6 border-t border-white/10 bg-black/20">
+                    <div className="p-6 border-t border-white/10 bg-black/40">
                         {confirmedContext ? (
-                             <button onClick={() => handleEndSession(true)} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all active:scale-95 font-medium text-sm">
+                             <button onClick={() => handleEndSession(true)} className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all active:scale-95 font-medium text-sm">
                                 <LogOut className="w-4 h-4" />
                                 End Current Session
                             </button>
                         ) : (
-                            <p className="text-center text-xs text-text-tertiary">ExamWarp AI v2.0 • Pro</p>
+                            <p className="text-center text-[10px] text-text-tertiary font-mono">ExamWarp AI • v2.0</p>
                         )}
                     </div>
                 </div>

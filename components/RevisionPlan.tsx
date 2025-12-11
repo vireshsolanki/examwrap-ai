@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { RevisionPlan as RevisionPlanType, SubjectContext } from '../types';
 import { Calendar, CheckSquare, RefreshCcw, Square, ArrowLeft } from 'lucide-react';
@@ -45,7 +44,7 @@ const RevisionPlan: React.FC<RevisionPlanProps> = ({ plan, onReset, context, com
             Back to Dashboard
           </button>
           <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-             Revision Strategy
+             7-Day Revision Plan
              {context && <span className="text-sm font-normal px-3 py-1 bg-white/5 border border-white/10 rounded-full text-text-secondary">{context.subjectName}</span>}
           </h2>
           <p className="text-slate-400">Your personalized roadmap to mastering weak concepts.</p>
@@ -67,7 +66,7 @@ const RevisionPlan: React.FC<RevisionPlanProps> = ({ plan, onReset, context, com
       </div>
 
       <div className="bg-indigo-900/10 border border-indigo-500/20 p-6 rounded-2xl mb-8 backdrop-blur-sm">
-        <h3 className="text-xl font-semibold text-indigo-300 mb-2">AI Coach Advice</h3>
+        <h3 className="text-xl font-semibold text-indigo-300 mb-2">Strategic Advice</h3>
         <p className="text-indigo-100/80 leading-relaxed text-sm md:text-base">{plan.generalAdvice}</p>
       </div>
 
