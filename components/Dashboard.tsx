@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { UserProfile, SubjectContext, ExamHistoryItem } from '../types';
-import { Play, TrendingUp, Trophy, History, BookOpen, Star, Activity, Eye, RotateCcw, X, Lock, Unlock, BarChart, Calendar, Cpu, Zap } from 'lucide-react';
+import { Play, TrendingUp, Trophy, History, BookOpen, Star, Activity, Eye, RotateCcw, X, Lock, Unlock, BarChart, Calendar, Cpu, Zap, Wand2, Trash2, ArrowRight, PlusCircle, Sparkles, BrainCircuit } from 'lucide-react';
+import { getFullExamRecord } from '../services/storageService';
 
 interface DashboardProps {
   user: UserProfile;
@@ -11,10 +12,23 @@ interface DashboardProps {
   onRetakeExam?: (id: string) => void;
   onViewResult?: (id: string) => void;
   onViewPlan?: (id: string) => void;
+  onOpenNotesFormatter: () => void;
+  onDeleteExam: (id: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext, onResumeSession, onReviewExam, onRetakeExam, onViewResult, onViewPlan }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
+const Dashboard: React.FC<DashboardProps> = ({ 
+    user, 
+    onNewSession, 
+    activeContext, 
+    onResumeSession, 
+    onReviewExam, 
+    onRetakeExam, 
+    onViewResult, 
+    onViewPlan,
+    onOpenNotesFormatter,
+    onDeleteExam
+}) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'history'>('overview');
   const [showXpModal, setShowXpModal] = useState(false);
   const [showLevelModal, setShowLevelModal] = useState(false);
 
@@ -22,10 +36,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext
   const currentLevelXp = (user.level - 1) * 1000;
   const progress = ((user.xp - currentLevelXp) / 1000) * 100;
 
+  // Filter exams that have a plan available
+  const examsWithPlans = useMemo(() => {
+      if (activeTab !== 'plans') return [];
+      return user.history.filter(item => {
+          const record = getFullExamRecord(item.id);
+          return record && record.plan;
+      });
+  }, [user.history, activeTab]);
+
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (window.confirm("Are you sure you want to delete this exam record? This cannot be undone.")) {
+          onDeleteExam(id);
+      }
+  }
+
   return (
     <div className="max-w-6xl mx-auto mt-8 px-6 pb-12 fade-in relative">
       
-      {/* Tech Hero */}
+      {/* Hero Section */}
       <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-8">
         <div>
             <div className="flex items-center gap-2 mb-2">
@@ -33,170 +63,260 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext
                 <span className="text-xs font-mono text-primary uppercase tracking-widest">ExamWarp AI</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">
-             Welcome, {user.name}
+             Welcome back, {user.name}
             </h1>
             <p className="text-text-secondary text-lg">
-             Target Exam: <span className="text-primary font-semibold border-b border-primary/30">{user.targetExam}</span>
+             Target: <span className="text-primary font-semibold border-b border-primary/30">{user.targetExam}</span>
             </p>
         </div>
         <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
             <Activity className="w-5 h-5 text-emerald-400" />
             <div className="flex flex-col text-right">
-                <span className="text-[10px] text-text-tertiary uppercase font-bold">Status</span>
-                <span className="text-emerald-400 font-mono text-sm leading-none">READY</span>
+                <span className="text-[10px] text-text-tertiary uppercase font-bold">System Status</span>
+                <span className="text-emerald-400 font-mono text-sm leading-none">ONLINE</span>
             </div>
         </div>
       </div>
 
-      {/* Info Genius Tabs */}
-      <div className="flex items-center gap-8 border-b border-border mb-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`pb-3 text-sm font-medium transition-all duration-300 relative px-2 tracking-wide ${activeTab === 'overview' ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
-          >
-            OVERVIEW
-            {activeTab === 'overview' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_10px_rgba(6,182,212,0.5)]" />}
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`pb-3 text-sm font-medium transition-all duration-300 relative px-2 tracking-wide ${activeTab === 'history' ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
-          >
-            EXAM HISTORY
-            {activeTab === 'history' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_10px_rgba(6,182,212,0.5)]" />}
-          </button>
+      {/* Tabs */}
+      <div className="flex items-center gap-8 border-b border-border mb-10 overflow-x-auto">
+          {['overview', 'plans', 'history'].map((tab) => (
+             <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`pb-3 text-sm font-medium transition-all duration-300 relative px-2 tracking-wide uppercase ${activeTab === tab ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+            >
+                {tab}
+                {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_10px_rgba(6,182,212,0.5)]" />}
+            </button>
+          ))}
       </div>
 
-      {activeTab === 'overview' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
+      {activeTab === 'overview' && (
+        <div className="space-y-10">
             
-            {/* Main Action Modules */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 1. Primary Action Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Active Session Card */}
                 {activeContext && onResumeSession ? (
-                    <div className="glass-panel rounded-xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent"></div>
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="relative flex h-2 w-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                </span>
-                                <span className="text-xs font-mono text-primary uppercase tracking-widest">Current Session</span>
+                    <div 
+                        onClick={onResumeSession}
+                        className="group relative overflow-hidden rounded-2xl bg-surface border border-primary/30 p-6 cursor-pointer transition-all hover:border-primary/60 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] flex flex-col justify-between h-64"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+                        
+                        <div className="relative z-10 flex justify-between items-start">
+                            <div className="p-3 rounded-xl bg-primary/20 text-primary border border-primary/20">
+                                <Play className="w-8 h-8 fill-current" />
                             </div>
-                            <h2 className="text-xl font-bold text-white mb-1 truncate">{activeContext.subjectName}</h2>
-                            <p className="text-xs text-text-secondary mb-6 font-mono">{activeContext.examType}</p>
+                            <span className="flex h-3 w-3 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                            </span>
                         </div>
-                        <button
-                            onClick={onResumeSession}
-                            className="bg-primary/10 hover:bg-primary/20 border border-primary/50 text-primary hover:text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all active:scale-95 duration-200 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]"
-                        >
-                            <Play className="w-4 h-4 fill-current" />
-                            RESUME EXAM
-                        </button>
+
+                        <div className="relative z-10 mt-auto">
+                            <span className="text-xs font-bold text-primary uppercase tracking-wider mb-1 block">Active Session</span>
+                            <h3 className="text-xl font-bold text-white mb-1 truncate" title={activeContext.subjectName}>{activeContext.subjectName}</h3>
+                            <p className="text-sm text-text-secondary truncate">{activeContext.examType}</p>
+                            <div className="mt-4 flex items-center gap-2 text-xs font-mono text-primary group-hover:translate-x-1 transition-transform">
+                                Resume Now <ArrowRight className="w-3 h-3" />
+                            </div>
+                        </div>
                     </div>
                 ) : (
-                    <div className="hidden md:flex glass-panel rounded-xl p-6 opacity-50 items-center justify-center text-center border-dashed border-2 border-border">
-                        <p className="text-xs font-mono text-text-tertiary">NO ACTIVE EXAM</p>
-                    </div>
+                   <div 
+                        onClick={onNewSession}
+                        className="group relative overflow-hidden rounded-2xl bg-surface border border-white/10 p-6 cursor-pointer transition-all hover:border-white/20 hover:bg-white/5 flex flex-col justify-center items-center text-center h-64 border-dashed"
+                    >
+                        <div className="p-4 rounded-full bg-white/5 text-text-tertiary mb-4 group-hover:scale-110 transition-transform">
+                            <Activity className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-lg font-bold text-text-secondary">No Active Session</h3>
+                        <p className="text-xs text-text-tertiary mt-2">Start a new exam to see progress here.</p>
+                    </div> 
                 )}
 
-                <div className="glass-panel rounded-xl p-6 flex flex-col justify-between group hover:border-secondary/50 transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-transparent"></div>
-                    <div>
-                        <h2 className="text-xl font-bold text-white mb-1">Upload Material</h2>
-                        <p className="text-xs text-text-secondary mb-6 font-mono">Start a new exam from PDF/Text.</p>
+                {/* New Session Card */}
+                <div 
+                    onClick={onNewSession}
+                    className="group relative overflow-hidden rounded-2xl bg-surface border border-secondary/30 p-6 cursor-pointer transition-all hover:border-secondary/60 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)] flex flex-col justify-between h-64"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+                    
+                    <div className="relative z-10 flex justify-between items-start">
+                        <div className="p-3 rounded-xl bg-secondary/20 text-secondary border border-secondary/20">
+                            <PlusCircle className="w-8 h-8" />
+                        </div>
                     </div>
-                    <button
-                        onClick={onNewSession}
-                        className="bg-gradient-to-r from-secondary to-indigo-600 hover:from-secondary hover:to-indigo-500 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all active:scale-95 duration-200 shadow-lg shadow-secondary/20"
+
+                    <div className="relative z-10 mt-auto">
+                        <span className="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block">New Assessment</span>
+                        <h3 className="text-xl font-bold text-white mb-1">Upload Material</h3>
+                        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
+                            Generate adaptive exams from your PDFs, textbooks, or notes using AI.
+                        </p>
+                        <div className="mt-4 flex items-center gap-2 text-xs font-mono text-secondary group-hover:translate-x-1 transition-transform">
+                            Start Upload <ArrowRight className="w-3 h-3" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Smart Tools Card */}
+                <div 
+                    onClick={onOpenNotesFormatter}
+                    className="group relative overflow-hidden rounded-2xl bg-surface border border-pink-500/30 p-6 cursor-pointer transition-all hover:border-pink-500/60 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] flex flex-col justify-between h-64"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+                    
+                    <div className="relative z-10 flex justify-between items-start">
+                        <div className="p-3 rounded-xl bg-pink-500/20 text-pink-400 border border-pink-500/20">
+                            <Wand2 className="w-8 h-8" />
+                        </div>
+                        <div className="px-2 py-1 rounded-md bg-pink-500/20 border border-pink-500/30 text-[10px] font-bold text-pink-300 uppercase">
+                            Beta
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 mt-auto">
+                        <span className="text-xs font-bold text-pink-400 uppercase tracking-wider mb-1 block">Smart Tools</span>
+                        <h3 className="text-xl font-bold text-white mb-1">Notes Formatter</h3>
+                        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
+                            Transform rough scribbles and bullet points into structured study guides.
+                        </p>
+                        <div className="mt-4 flex items-center gap-2 text-xs font-mono text-pink-400 group-hover:translate-x-1 transition-transform">
+                            Open Tool <ArrowRight className="w-3 h-3" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* 2. Stats & Insights */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Stats Grid */}
+                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                     <button 
+                        onClick={() => setShowXpModal(true)}
+                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-primary/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
                     >
-                        <BookOpen className="w-4 h-4" />
-                        UPLOAD PDF
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
+                            <Cpu className="w-16 h-16 text-primary" />
+                        </div>
+                        <div className="relative z-10 text-xs font-bold text-primary uppercase tracking-widest mb-2">Total XP</div>
+                        <div className="relative z-10">
+                             <div className="text-2xl font-black text-white group-hover:text-primary transition-colors">{user.xp.toLocaleString()}</div>
+                             <div className="w-full h-1 bg-white/10 mt-2 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
+                            </div>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => setShowLevelModal(true)}
+                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-emerald-500/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
+                            <Trophy className="w-16 h-16 text-emerald-500" />
+                        </div>
+                        <div className="relative z-10 text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Current Rank</div>
+                        <div className="relative z-10">
+                             <div className="text-2xl font-black text-white group-hover:text-emerald-400 transition-colors">LVL {user.level}</div>
+                             <div className="text-[10px] text-text-tertiary mt-1 font-mono">NEXT: {(user.level + 1) * 1000} XP</div>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => setActiveTab('history')}
+                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-secondary/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
+                    >
+                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
+                            <History className="w-16 h-16 text-secondary" />
+                        </div>
+                        <div className="relative z-10 text-xs font-bold text-secondary uppercase tracking-widest mb-2">Exams Taken</div>
+                        <div className="relative z-10">
+                             <div className="text-2xl font-black text-white group-hover:text-secondary transition-colors">{user.history.length}</div>
+                             <div className="text-[10px] text-text-tertiary mt-1 font-mono group-hover:text-white transition-colors">View History &rarr;</div>
+                        </div>
                     </button>
                 </div>
-            </div>
 
-            {/* Data Stats Modules */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button 
-                    onClick={() => setShowXpModal(true)}
-                    className="glass-panel p-5 rounded-xl hover:border-primary/50 transition-all duration-300 text-left group active:scale-95 relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Cpu className="w-12 h-12 text-primary" />
-                    </div>
-                    <div className="flex items-center gap-2 text-primary mb-2 text-xs font-mono font-bold uppercase tracking-widest">
-                        Total XP
-                    </div>
-                    <div className="text-3xl font-mono font-bold text-white group-hover:text-primary transition-colors tracking-tight">{user.xp.toLocaleString()}</div>
-                    <div className="w-full h-1 bg-white/10 mt-3 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
-                    </div>
-                </button>
-
-                <button 
-                    onClick={() => setShowLevelModal(true)}
-                    className="glass-panel p-5 rounded-xl hover:border-emerald-500/50 transition-all duration-300 text-left group active:scale-95 relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Trophy className="w-12 h-12 text-emerald-500" />
-                    </div>
-                    <div className="flex items-center gap-2 text-emerald-500 mb-2 text-xs font-mono font-bold uppercase tracking-widest">
-                        Rank
-                    </div>
-                    <div className="text-3xl font-mono font-bold text-white group-hover:text-emerald-400 transition-colors tracking-tight">LVL {user.level}</div>
-                    <div className="text-[10px] text-text-tertiary mt-2 font-mono">NEXT: {(user.level + 1) * 1000} XP</div>
-                </button>
-
-                <button 
-                    onClick={() => setActiveTab('history')}
-                    className="glass-panel p-5 rounded-xl hover:border-secondary/50 transition-all duration-300 text-left group active:scale-95 relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <History className="w-12 h-12 text-secondary" />
-                    </div>
-                    <div className="flex items-center gap-2 text-secondary mb-2 text-xs font-mono font-bold uppercase tracking-widest">
-                        Exams Taken
-                    </div>
-                    <div className="text-3xl font-mono font-bold text-white group-hover:text-secondary transition-colors tracking-tight">{user.history.length}</div>
-                    <div className="text-[10px] text-text-tertiary mt-2 font-mono">VIEW HISTORY -></div>
-                </button>
-            </div>
-
-            </div>
-
-            {/* Right Column: AI Insight */}
-            <div className="lg:col-span-1">
-            <div className="glass-panel rounded-xl p-6 h-full flex flex-col relative overflow-hidden border-t-2 border-t-secondary/50">
-                <div className="absolute inset-0 bg-gradient-to-b from-secondary/5 to-transparent pointer-events-none"></div>
-                
-                <div className="flex items-center gap-2 mb-4 text-secondary relative z-10">
-                    <Zap className="w-5 h-5" />
-                    <h3 className="font-bold font-mono text-sm tracking-wider">MENTOR NOTES</h3>
+                {/* Insight Card */}
+                <div className="lg:col-span-1 glass-panel rounded-xl p-6 border border-white/10 flex flex-col justify-between h-full bg-gradient-to-b from-white/5 to-transparent">
+                     <div>
+                        <div className="flex items-center gap-2 mb-4 text-white">
+                            <BrainCircuit className="w-5 h-5 text-yellow-400" />
+                            <h3 className="font-bold text-sm tracking-wide">AI INSIGHT</h3>
+                        </div>
+                        <p className="text-sm text-slate-300 leading-relaxed italic relative pl-4 border-l-2 border-yellow-400/50">
+                            "Consistency is your greatest asset. Based on your recent activity, try to focus on closing small concept gaps in your next session to boost your XP multiplier."
+                        </p>
+                     </div>
+                     <div className="mt-4 pt-4 border-t border-white/5">
+                        <div className="flex justify-between items-center text-xs font-mono text-text-tertiary">
+                             <span>Engagement</span>
+                             <span className="text-emerald-400">High</span>
+                        </div>
+                     </div>
                 </div>
-                <p className="text-sm text-text-secondary leading-relaxed mb-8 flex-grow relative z-10 font-sans">
-                    "Consistent practice is key. Based on your activity, I recommend reviewing your recent exam feedback and tackling the suggested revision tasks."
-                </p>
-                
-                <div className="pt-6 border-t border-white/10 mt-auto relative z-10">
-                    <h4 className="text-[10px] font-bold text-text-tertiary uppercase mb-3 font-mono tracking-widest">NEXT LEVEL PROGRESS</h4>
-                    <div className="flex justify-between text-xs text-text-secondary mb-2 font-mono">
-                        <span>L {user.level}</span>
-                        <span>L {user.level + 1}</span>
-                    </div>
-                    <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
-                        <div 
-                            className="h-full bg-gradient-to-r from-secondary to-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]" 
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
+
             </div>
         </div>
-      ) : (
-        /* HISTORY TAB */
-        <div className="glass-panel rounded-xl overflow-hidden animate-slide-up border-t border-primary/20">
+      )}
+
+      {/* Plans Tab Content */}
+      {activeTab === 'plans' && (
+          <div className="animate-slide-up">
+              {examsWithPlans.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {examsWithPlans.map(item => (
+                          <div key={item.id} className="glass-panel rounded-xl p-6 group hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col justify-between h-full min-h-[220px]">
+                              <div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="w-10 h-10 rounded-lg bg-cyan-900/20 flex items-center justify-center border border-cyan-500/30">
+                                        <Calendar className="w-5 h-5 text-cyan-400" />
+                                    </div>
+                                    <button 
+                                        onClick={(e) => handleDelete(item.id, e)}
+                                        className="text-text-tertiary hover:text-red-400 p-2 rounded-full hover:bg-white/5 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-1 truncate">{item.subjectName}</h3>
+                                <p className="text-xs text-text-secondary mb-4">Created: {new Date(item.date).toLocaleDateString()}</p>
+                                
+                                <div className="flex items-center gap-2 mb-6">
+                                    <div className={`px-2 py-0.5 rounded text-[10px] font-bold border ${item.score/item.totalQuestions > 0.7 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+                                        {Math.round((item.score/item.totalQuestions) * 100)}% SCORE
+                                    </div>
+                                </div>
+                              </div>
+
+                              <button 
+                                onClick={() => onViewPlan && onViewPlan(item.id)}
+                                className="w-full py-3 bg-white/5 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/30 text-cyan-400 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
+                              >
+                                  Open Revision Plan <ArrowRight className="w-3 h-3" />
+                              </button>
+                          </div>
+                      ))}
+                  </div>
+              ) : (
+                  <div className="flex flex-col items-center justify-center py-24 text-text-tertiary border-2 border-dashed border-white/5 rounded-2xl bg-white/5">
+                      <Calendar className="w-12 h-12 mb-4 opacity-50" />
+                      <p className="mb-2 font-medium">No active revision plans found.</p>
+                      <p className="text-xs max-w-xs text-center">Complete an exam and generate a plan to see it here.</p>
+                  </div>
+              )}
+          </div>
+      )}
+
+      {/* History Tab Content */}
+      {activeTab === 'history' && (
+        <div className="glass-panel rounded-xl overflow-hidden animate-slide-up border border-primary/20">
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-white/5 border-b border-white/10 text-[10px] uppercase text-primary tracking-widest font-mono font-bold">
@@ -253,6 +373,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext
                                     >
                                         <RotateCcw className="w-4 h-4" />
                                     </button>
+                                    <div className="w-px h-4 bg-white/10 mx-1"></div>
+                                    <button 
+                                        onClick={(e) => handleDelete(item.id, e)}
+                                        className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 rounded text-text-tertiary hover:text-red-400 transition-all" 
+                                        title="Delete"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -269,7 +397,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext
         </div>
       )}
 
-      {/* Modals remain mostly same but with updated styles if needed */}
+      {/* Modals */}
       {showXpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowXpModal(false)} />
@@ -296,7 +424,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onNewSession, activeContext
         </div>
       )}
       
-      {/* Level Modal - Similar update */}
        {showLevelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowLevelModal(false)} />

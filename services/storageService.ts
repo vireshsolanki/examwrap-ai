@@ -59,6 +59,24 @@ export const getFullExamRecord = (id: string): FullExamRecord | null => {
   }
 };
 
+export const deleteExamRecord = (id: string): UserProfile | null => {
+  const profile = loadUserProfile();
+  if (!profile) return null;
+
+  // Remove from history array
+  profile.history = profile.history.filter(h => h.id !== id);
+  saveUserProfile(profile);
+
+  // Remove actual data record
+  try {
+    localStorage.removeItem(`${EXAM_RECORD_PREFIX}${id}`);
+  } catch (e) {
+    console.error("Failed to delete exam record from storage", e);
+  }
+
+  return profile;
+};
+
 export const updateExamRevisionProgress = (examId: string, progress: string[]) => {
   const record = getFullExamRecord(examId);
   if (record) {

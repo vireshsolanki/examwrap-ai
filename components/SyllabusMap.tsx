@@ -21,7 +21,7 @@ const SyllabusMap: React.FC<SyllabusMapProps> = ({ topics, onStartExam, isGenera
         <button
           onClick={onStartExam}
           disabled={isGenerating}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white text-sm font-bold rounded-lg transition-all active:scale-95 duration-200 shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white text-sm font-bold rounded-lg transition-all active:scale-95 duration-200 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
         >
            {isGenerating ? "Initializing Exam..." : "Start Assessment"}
            {!isGenerating && <Play className="w-3.5 h-3.5 fill-current" />}

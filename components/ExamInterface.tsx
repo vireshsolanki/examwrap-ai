@@ -75,15 +75,19 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   const [textInput, setTextInput] = useState('');
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
 
+  // Safety check for empty questions
   const currentQuestion = questions[currentIndex];
-  const existingAnswer = answers.find(a => a.questionId === currentQuestion.id);
 
   useEffect(() => {
-      if (isReviewMode && existingAnswer) {
-          setIsAnswerChecked(true);
-          setTextInput(existingAnswer.textAnswer || '');
-      }
-  }, [currentIndex, isReviewMode]);
+    if (!currentQuestion) return;
+    const existing = answers.find(a => a.questionId === currentQuestion.id);
+    if (isReviewMode && existing) {
+        setIsAnswerChecked(true);
+        setTextInput(existing.textAnswer || '');
+    }
+  }, [currentIndex, isReviewMode, currentQuestion]);
+
+  const existingAnswer = currentQuestion ? answers.find(a => a.questionId === currentQuestion.id) : undefined;
 
   useEffect(() => {
     if (isReviewMode) return;
@@ -118,7 +122,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
     if (!isReviewMode) setIsAnswerChecked(false);
     if (existingAnswer?.textAnswer) setTextInput(existingAnswer.textAnswer);
     else setTextInput('');
-  }, [currentIndex, currentQuestion.id]);
+  }, [currentIndex, currentQuestion?.id]);
 
   // Handle final submission (either from button or time up)
   const performSubmission = (currentAns: UserAnswer[]) => {
@@ -130,6 +134,8 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
          onComplete(answers); 
          return;
      }
+     if (!currentQuestion) return;
+
      if (!isAnswerChecked && currentQuestion.type !== QuestionType.MCQ && !isTimeUp) {
         const timeSpent = (Date.now() - questionStartTime) / 1000;
         const finalAns = {
@@ -147,16 +153,6 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
   const handleForceSubmit = useCallback(() => {
       alert("Session Terminated: Time Limit Exceeded.");
-      // We need to use the functional update pattern or a ref for 'answers' if we were using it directly,
-      // but here we are triggering the flow. However, answers state might be stale in a callback.
-      // But since this calls handleSubmitExam which depends on state, and onTimeUp is memoized...
-      // Actually, standard practice for "Force Submit" on global timer is to just submit current state.
-      // Since `answers` changes frequently, `handleForceSubmit` would change frequently, resetting timer.
-      // We should use a ref for answers to submit without resetting timer.
-      // For simplicity in this fix, we will just call the prop function with current answers in state (managed by parent or refreshed).
-      // Wait, ExamTimer resets if `onTimeUp` changes.
-      // We must make `onTimeUp` stable.
-      // We'll dispatch a custom event or use a ref.
       document.dispatchEvent(new CustomEvent('exam-time-up'));
   }, []);
 
@@ -173,6 +169,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   }, [answers, isReviewMode, onComplete]);
 
   const handleAutoAdvance = () => {
+      if (!currentQuestion) return;
       const timeSpent = (Date.now() - questionStartTime) / 1000;
       const newAnswer: UserAnswer = {
         questionId: currentQuestion.id,
@@ -191,7 +188,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   };
 
   const saveCurrentAnswer = (selectedIdx?: number, textVal?: string) => {
-    if (isAnswerChecked || isTimeUp || isReviewMode) return; 
+    if (isAnswerChecked || isTimeUp || isReviewMode || !currentQuestion) return; 
     const timeSpent = (Date.now() - questionStartTime) / 1000;
     setAnswers(prev => {
       const filtered = prev.filter(a => a.questionId !== currentQuestion.id);
@@ -205,6 +202,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   };
 
   const toggleReviewMark = () => {
+    if (!currentQuestion) return;
     setMarkedForReview(prev => {
       const newSet = new Set(prev);
       if (newSet.has(currentQuestion.id)) newSet.delete(currentQuestion.id);
@@ -214,7 +212,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
   };
 
   const handleCheckAnswer = () => {
-    if (isReviewMode) return;
+    if (isReviewMode || !currentQuestion) return;
     if (currentQuestion.type === QuestionType.MCQ && existingAnswer?.selectedOptionIndex === undefined) return;
     if (currentQuestion.type !== QuestionType.MCQ && !textInput.trim()) return;
     if (currentQuestion.type !== QuestionType.MCQ) saveCurrentAnswer(undefined, textInput);
@@ -223,12 +221,24 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
   const navigateTo = (index: number) => {
      if (isTimeUp && !isReviewMode) return; 
-     if (!isAnswerChecked && currentQuestion.type !== QuestionType.MCQ && !isReviewMode) {
+     if (!isAnswerChecked && currentQuestion?.type !== QuestionType.MCQ && !isReviewMode) {
          saveCurrentAnswer(undefined, textInput);
      }
      setCurrentIndex(index);
      setShowPalette(false);
   };
+
+  if (!currentQuestion) {
+      return (
+          <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] bg-background fade-in">
+              <div className="p-8 glass-panel rounded-xl text-center border-red-500/30 border">
+                  <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">No Questions Available</h3>
+                  <p className="text-text-secondary">Please return to dashboard and generate a new exam.</p>
+              </div>
+          </div>
+      );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden fade-in relative bg-background">

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExamResult } from '../types';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar } from 'lucide-react';
+import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar, Sliders } from 'lucide-react';
 
 interface ResultsDashboardProps {
   result: ExamResult;
-  onViewPlan: () => void;
+  onViewPlan: (days: number) => void;
   onSummarize: () => void;
   onRetake: () => void;
   onReattemptIncorrect: () => void;
@@ -13,12 +13,25 @@ interface ResultsDashboardProps {
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan, onSummarize, onRetake, onReattemptIncorrect, isSummarizing }) => {
+  const [selectedDays, setSelectedDays] = useState(result.recommendedDuration || 7);
+
+  // Update local state if recommended duration changes
+  useEffect(() => {
+    if (result.recommendedDuration) {
+        setSelectedDays(result.recommendedDuration);
+    }
+  }, [result.recommendedDuration]);
+
   const scorePercentage = Math.round((result.score / result.totalQuestions) * 100);
   
   const accuracyData = [
     { name: 'Correct', value: result.score, color: '#10b981' }, 
     { name: 'Incorrect', value: result.totalQuestions - result.score, color: '#ef4444' } 
   ];
+
+  const handleViewPlan = () => {
+    onViewPlan(selectedDays);
+  };
 
   return (
     <div className="max-w-6xl mx-auto mt-8 px-6 pb-20 fade-in">
@@ -59,13 +72,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
             >
                 {isSummarizing ? "Generating..." : "Summary"}
                 <FileText className="w-4 h-4" />
-            </button>
-            <button
-                onClick={onViewPlan}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200"
-            >
-                View Plan
-                <Calendar className="w-4 h-4" />
             </button>
         </div>
       </div>
@@ -134,6 +140,59 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                         <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wide">Time Management</h4>
                     </div>
                     <p className="text-xs text-text-tertiary">{result.timeManagementAnalysis}</p>
+                </div>
+            </div>
+
+            {/* Revision Plan Configurator */}
+            <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-6 rounded-2xl backdrop-blur-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div className="flex flex-col md:flex-row gap-6 relative z-10">
+                    <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                             <Calendar className="w-5 h-5 text-violet-400" />
+                             Plan Your Revision
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-6">
+                            Based on your gaps, AI recommends <span className="font-bold text-violet-300">{result.recommendedDuration || 7} days</span> of study. 
+                            Adjust the slider to fit your timeline.
+                        </p>
+                        
+                        <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                            <div className="flex justify-between items-center mb-3">
+                                <label className="text-xs font-bold uppercase text-text-tertiary flex items-center gap-2">
+                                    <Sliders className="w-3.5 h-3.5" />
+                                    Revision Duration
+                                </label>
+                                <span className="text-sm font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30 px-3 py-1 rounded-md font-bold">
+                                    {selectedDays} Days
+                                </span>
+                            </div>
+                            <input 
+                                type="range" 
+                                min="1" 
+                                max="14" 
+                                value={selectedDays} 
+                                onChange={(e) => setSelectedDays(Number(e.target.value))}
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet-500"
+                            />
+                            <div className="flex justify-between mt-2 text-[10px] text-text-tertiary font-mono">
+                                <span>1 Day (Cram)</span>
+                                <span>7 Days (Balanced)</span>
+                                <span>14 Days (Deep)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-end">
+                         <button
+                            onClick={handleViewPlan}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-base font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200"
+                        >
+                            Generate {selectedDays}-Day Plan
+                            <ArrowRight className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

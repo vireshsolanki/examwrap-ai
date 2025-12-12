@@ -29,6 +29,7 @@ const SyllabusMap = React.lazy(() => import('./components/SyllabusMap'));
 const Onboarding = React.lazy(() => import('./components/Onboarding'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
 const SummaryView = React.lazy(() => import('./components/SummaryView'));
+const NotesFormatter = React.lazy(() => import('./components/NotesFormatter'));
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.ONBOARDING); 
@@ -117,6 +118,11 @@ const App: React.FC = () => {
     setLoadingState({ msg: "Synthesizing Assessment", sub: "Generating question matrix..." });
     try {
         const generatedQuestions = await GeminiService.generateExamQuestions(uploadedContent, topics, config, confirmedContext);
+        if (!generatedQuestions || generatedQuestions.length === 0) {
+            alert("The AI could not generate valid questions from the content. Please try adjusting the settings or uploading clearer content.");
+            setLoadingState(null);
+            return;
+        }
         setQuestions(generatedQuestions);
         setView(AppView.EXAM);
     } catch (e) {
@@ -197,7 +203,7 @@ const App: React.FC = () => {
           setRevisionProgress(record.revisionProgress || []);
           setView(AppView.REVISION);
       } else {
-          alert("No revision plan found.");
+          alert("No revision plan found for this exam.");
       }
   };
 
@@ -230,6 +236,19 @@ const App: React.FC = () => {
       }
   };
 
+  const handleDeleteExam = (id: string) => {
+      const updatedProfile = StorageService.deleteExamRecord(id);
+      if (updatedProfile) {
+          setUserProfile(updatedProfile);
+          // If the deleted exam was the currently active context, reset to dashboard
+          if (activeRecordId === id) {
+              setResult(null);
+              setPlan(null);
+              setActiveRecordId(null);
+          }
+      }
+  };
+
   const handleExamComplete = async (answers: UserAnswer[]) => {
     if (examMode === ExamMode.REVIEW) {
         setView(AppView.DASHBOARD);
@@ -241,6 +260,11 @@ const App: React.FC = () => {
     try {
         const { result: examResult, plan: revisionPlan } = await GeminiService.analyzePerformance(questions, answers);
         
+        // Safety check if analysis failed
+        if (!examResult || !examResult.score && examResult.score !== 0) {
+             throw new Error("Invalid analysis result");
+        }
+
         const historyId = Date.now().toString();
 
         if (confirmedContext && userProfile && examConfig) {
@@ -248,8 +272,8 @@ const App: React.FC = () => {
                 id: historyId,
                 date: new Date().toISOString(),
                 subjectName: confirmedContext.subjectName,
-                score: examResult.score,
-                totalQuestions: examResult.totalQuestions
+                score: examResult.score || 0,
+                totalQuestions: examResult.totalQuestions || questions.length
             };
             
             const fullRecord: FullExamRecord = {
@@ -263,7 +287,7 @@ const App: React.FC = () => {
                 revisionProgress: []
             };
 
-            const updatedProfile = StorageService.addXpAndHistory(examResult.xpEarned, historyItem, fullRecord);
+            const updatedProfile = StorageService.addXpAndHistory(examResult.xpEarned || 0, historyItem, fullRecord);
             setUserProfile(updatedProfile);
         }
 
@@ -274,10 +298,42 @@ const App: React.FC = () => {
         setView(AppView.RESULTS);
     } catch (e) {
         console.error(e);
-        alert("Error analyzing results.");
+        alert("Error analyzing results. Please try again.");
     } finally {
         setLoadingState(null);
     }
+  };
+
+  const handleGenerateCustomPlan = async (days: number) => {
+      if (!result || !confirmedContext || !activeRecordId) return;
+      
+      setLoadingState({ msg: `Designing ${days}-Day Schedule`, sub: "Tailoring tasks to your timeline..." });
+      try {
+          const newPlan = await GeminiService.regenerateRevisionPlan(
+              result.weakTopics, 
+              result.conceptGaps, 
+              days, 
+              confirmedContext
+          );
+          
+          setPlan(newPlan);
+          
+          // Update persistent record
+          const record = StorageService.getFullExamRecord(activeRecordId);
+          if (record) {
+              record.plan = newPlan;
+              record.revisionProgress = []; // Reset progress on new plan
+              StorageService.saveFullExamRecord(record);
+              setRevisionProgress([]);
+          }
+          
+          setView(AppView.REVISION);
+      } catch (e) {
+          console.error(e);
+          alert("Failed to regenerate plan.");
+      } finally {
+          setLoadingState(null);
+      }
   };
 
   const handleGenerateSummary = async () => {
@@ -374,7 +430,7 @@ const App: React.FC = () => {
                     {userProfile && (
                         <>
                              {/* Desktop Status Bar */}
-                             {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && (
+                             {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && (
                                 <div className="hidden md:flex items-center gap-3 text-sm border-r border-white/10 pr-4">
                                     <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
                                     <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
@@ -396,7 +452,7 @@ const App: React.FC = () => {
                              {/* Menu Trigger */}
                              <button 
                                 onClick={() => setIsMenuOpen(true)}
-                                className="p-2 text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors active:scale-90"
+                                className="p-2 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors active:scale-90"
                              >
                                  <Menu className="w-6 h-6" />
                              </button>
@@ -506,6 +562,8 @@ const App: React.FC = () => {
                         onViewResult={handleViewResultHistory}
                         onRetakeExam={handleRetakeHistory}
                         onViewPlan={handleViewPlanHistory}
+                        onOpenNotesFormatter={() => setView(AppView.NOTES_FORMATTER)}
+                        onDeleteExam={handleDeleteExam}
                     />
                 )}
 
@@ -549,7 +607,7 @@ const App: React.FC = () => {
                 {view === AppView.RESULTS && result && (
                     <ResultsDashboard 
                         result={result} 
-                        onViewPlan={() => setView(AppView.REVISION)}
+                        onViewPlan={handleGenerateCustomPlan}
                         onSummarize={handleGenerateSummary}
                         onRetake={() => handleRetakeExam(false)}
                         onReattemptIncorrect={() => handleRetakeExam(true)}
@@ -572,6 +630,10 @@ const App: React.FC = () => {
                         summaryMarkdown={summaryMarkdown} 
                         onBack={handleSummaryBack} 
                     />
+                )}
+                
+                {view === AppView.NOTES_FORMATTER && (
+                    <NotesFormatter onBack={handleNavigateToDashboard} />
                 )}
 
             </Suspense>

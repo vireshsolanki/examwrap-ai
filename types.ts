@@ -75,6 +75,7 @@ export interface ExamResult {
   conceptGaps: string[];
   carelessMistakes: string[];
   xpEarned: number; // Gamification
+  recommendedDuration: number; // AI suggested days for revision
 }
 
 export interface RevisionDay {
@@ -98,7 +99,8 @@ export enum AppView {
   EXAM = 'EXAM',
   RESULTS = 'RESULTS',
   REVISION = 'REVISION',
-  SUMMARY = 'SUMMARY'
+  SUMMARY = 'SUMMARY',
+  NOTES_FORMATTER = 'NOTES_FORMATTER'
 }
 
 export interface SubjectAnalysis {
