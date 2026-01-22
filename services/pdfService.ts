@@ -1,9 +1,9 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Set worker source for PDF.js
-// Critical: Version must match the 'pdfjs-dist' version in importmap exactly (5.4.449).
+// Critical: Version must match the 'pdfjs-dist' version in index.html exactly (5.4.530).
 // @ts-ignore
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.449/build/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs`;
 
 export const extractTextFromPDF = async (
   file: File, 

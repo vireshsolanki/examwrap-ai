@@ -100,7 +100,8 @@ export enum AppView {
   RESULTS = 'RESULTS',
   REVISION = 'REVISION',
   SUMMARY = 'SUMMARY',
-  NOTES_FORMATTER = 'NOTES_FORMATTER'
+  NOTES_FORMATTER = 'NOTES_FORMATTER',
+  EXAM_EXPORT = 'EXAM_EXPORT'
 }
 
 export interface SubjectAnalysis {
@@ -143,4 +144,5 @@ export interface UserProfile {
   xp: number;
   level: number;
   history: ExamHistoryItem[];
+  hasSeenTour?: boolean;
 }

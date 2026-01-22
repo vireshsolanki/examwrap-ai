@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { ExamResult } from '../types';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar, Sliders } from 'lucide-react';
+import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar, Sliders, Printer } from 'lucide-react';
 
 interface ResultsDashboardProps {
   result: ExamResult;
@@ -9,13 +10,21 @@ interface ResultsDashboardProps {
   onSummarize: () => void;
   onRetake: () => void;
   onReattemptIncorrect: () => void;
+  onExportExam: () => void;
   isSummarizing: boolean;
 }
 
-const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan, onSummarize, onRetake, onReattemptIncorrect, isSummarizing }) => {
+const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ 
+  result, 
+  onViewPlan, 
+  onSummarize, 
+  onRetake, 
+  onReattemptIncorrect, 
+  onExportExam,
+  isSummarizing 
+}) => {
   const [selectedDays, setSelectedDays] = useState(result.recommendedDuration || 7);
 
-  // Update local state if recommended duration changes
   useEffect(() => {
     if (result.recommendedDuration) {
         setSelectedDays(result.recommendedDuration);
@@ -35,19 +44,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
 
   return (
     <div className="max-w-6xl mx-auto mt-8 px-6 pb-20 fade-in">
-      
-      {/* Celebration Header */}
       <div className="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div>
            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-             Exam Results
+             Assessment Analysis
              {scorePercentage > 80 && <span className="text-2xl animate-bounce">🎉</span>}
            </h1>
-           <p className="text-text-secondary text-sm mt-1">Here is how you performed against your target.</p>
+           <p className="text-text-secondary text-sm mt-1">Intelligence report on your recent simulation.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-             <div className="flex items-center glass-panel rounded-xl p-1.5 mr-2 shadow-lg">
+             <div className="flex items-center glass-panel rounded-xl p-1.5 shadow-lg">
                  <button
                     onClick={onRetake}
                     className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-white text-sm font-medium transition-all active:scale-95 duration-200 hover:bg-white/10 rounded-lg"
@@ -61,74 +68,78 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                     className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-red-400 text-sm font-medium transition-all active:scale-95 duration-200 hover:bg-white/10 rounded-lg"
                  >
                      <AlertTriangle className="w-3.5 h-3.5" />
-                     Retry Incorrect
+                     Retry Gaps
                  </button>
              </div>
+
+             <button
+                onClick={onExportExam}
+                className="flex items-center gap-2 px-5 py-3 border border-primary/20 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold rounded-xl transition-all active:scale-95"
+            >
+                Export Mock Exam
+                <Printer className="w-4 h-4" />
+            </button>
 
              <button
                 onClick={onSummarize}
                 disabled={isSummarizing}
                 className="flex items-center gap-2 px-5 py-3 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white text-sm font-medium rounded-xl transition-all active:scale-95 duration-200 disabled:opacity-50 shadow-sm backdrop-blur-sm"
             >
-                {isSummarizing ? "Generating..." : "Summary"}
+                {isSummarizing ? "Synthesizing..." : "View Brief"}
                 <FileText className="w-4 h-4" />
             </button>
         </div>
       </div>
 
-      {/* XP Banner */}
       {result.xpEarned > 0 && (
           <div className="mb-8 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-xl p-4 flex items-center gap-4 animate-in slide-in-from-top-2">
               <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                   <Star className="w-6 h-6 fill-current" />
               </div>
               <div>
-                  <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-wide">Level Up!</h3>
-                  <p className="text-text-secondary text-sm">You earned <strong className="text-white">+{result.xpEarned} XP</strong> from this session!</p>
+                  <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-wide">Neural Reward</h3>
+                  <p className="text-text-secondary text-sm">Synchronized <strong className="text-white">+{result.xpEarned} XP</strong> to your profile.</p>
               </div>
           </div>
       )}
 
-      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Final Score</div>
+            <div className="text-[10px] text-text-tertiary uppercase font-bold tracking-widest mb-2 font-mono">Accuracy</div>
             <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-black text-white">{scorePercentage}%</span>
-                <span className="text-sm text-text-secondary">({result.score}/{result.totalQuestions})</span>
+                <span className="text-sm text-text-secondary font-mono">({result.score}/{result.totalQuestions})</span>
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Best Topic</div>
+            <div className="text-[10px] text-text-tertiary uppercase font-bold tracking-widest mb-2 font-mono">Dominant Hub</div>
             <div className="text-lg font-bold text-emerald-400 truncate" title={result.strongTopics[0]}>
                 {result.strongTopics[0] || 'N/A'}
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Needs Improvement</div>
+            <div className="text-[10px] text-text-tertiary uppercase font-bold tracking-widest mb-2 font-mono">Critical Weakness</div>
             <div className="text-lg font-bold text-red-400 truncate" title={result.weakTopics[0]}>
                 {result.weakTopics[0] || 'None'}
             </div>
         </div>
         <div className="glass-panel p-6 rounded-2xl">
-            <div className="text-xs text-text-tertiary uppercase font-bold tracking-wider mb-2">Time Efficiency</div>
+            <div className="text-[10px] text-text-tertiary uppercase font-bold tracking-widest mb-2 font-mono">Performance Flow</div>
             <div className="text-lg font-bold text-violet-400">
-                {result.timeManagementAnalysis?.toLowerCase().includes("fast") ? "Fast ⚡" : "Balanced ⚖️"}
+                {result.timeManagementAnalysis?.toLowerCase().includes("fast") ? "Fluid ⚡" : "Measured ⚖️"}
             </div>
         </div>
       </div>
 
-      {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Col: Analysis */}
         <div className="lg:col-span-2 space-y-6">
-            <div className="glass-panel p-8 rounded-2xl">
+            <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-violet-500/20 rounded-lg">
                         <TrendingUp className="w-5 h-5 text-violet-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-white">AI Feedback</h3>
+                    <h3 className="text-lg font-bold text-white">AI Mentor Feedback</h3>
                 </div>
                 <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line border-l-2 border-violet-500/30 pl-4">
                     {result.feedback}
@@ -137,34 +148,33 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                 <div className="mt-8 pt-6 border-t border-white/10">
                     <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-4 h-4 text-text-tertiary" />
-                        <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wide">Time Management</h4>
+                        <h4 className="text-xs font-bold text-text-secondary uppercase tracking-widest font-mono">Temporal Analysis</h4>
                     </div>
                     <p className="text-xs text-text-tertiary">{result.timeManagementAnalysis}</p>
                 </div>
             </div>
 
-            {/* Revision Plan Configurator */}
-            <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-6 rounded-2xl backdrop-blur-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-8 rounded-2xl backdrop-blur-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-[100px] pointer-events-none"></div>
                 
-                <div className="flex flex-col md:flex-row gap-6 relative z-10">
+                <div className="flex flex-col md:flex-row gap-8 relative z-10">
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                             <Calendar className="w-5 h-5 text-violet-400" />
-                             Plan Your Revision
+                        <h3 className="text-xl font-black text-white mb-2 flex items-center gap-3">
+                             <Calendar className="w-6 h-6 text-violet-400" />
+                             Construct Revision Path
                         </h3>
-                        <p className="text-sm text-slate-400 mb-6">
-                            Based on your gaps, AI recommends <span className="font-bold text-violet-300">{result.recommendedDuration || 7} days</span> of study. 
-                            Adjust the slider to fit your timeline.
+                        <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                            Closing identified concept gaps requires a focused schedule. 
+                            The AI recommends <span className="font-bold text-violet-300">{result.recommendedDuration || 7} days</span> of targeted review.
                         </p>
                         
-                        <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                            <div className="flex justify-between items-center mb-3">
-                                <label className="text-xs font-bold uppercase text-text-tertiary flex items-center gap-2">
+                        <div className="bg-black/30 p-6 rounded-2xl border border-white/5 shadow-inner">
+                            <div className="flex justify-between items-center mb-4">
+                                <label className="text-[10px] font-black uppercase text-text-tertiary flex items-center gap-2 tracking-[0.2em] font-mono">
                                     <Sliders className="w-3.5 h-3.5" />
-                                    Revision Duration
+                                    Timeline Duration
                                 </label>
-                                <span className="text-sm font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30 px-3 py-1 rounded-md font-bold">
+                                <span className="text-sm font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30 px-4 py-1 rounded-full font-bold">
                                     {selectedDays} Days
                                 </span>
                             </div>
@@ -174,12 +184,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                                 max="14" 
                                 value={selectedDays} 
                                 onChange={(e) => setSelectedDays(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet-500"
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet-500 mb-2"
                             />
-                            <div className="flex justify-between mt-2 text-[10px] text-text-tertiary font-mono">
-                                <span>1 Day (Cram)</span>
-                                <span>7 Days (Balanced)</span>
-                                <span>14 Days (Deep)</span>
+                            <div className="flex justify-between text-[9px] text-text-tertiary font-mono uppercase tracking-widest">
+                                <span>Cram</span>
+                                <span>Balanced</span>
+                                <span>Deep Review</span>
                             </div>
                         </div>
                     </div>
@@ -187,9 +197,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                     <div className="flex items-end">
                          <button
                             onClick={handleViewPlan}
-                            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-base font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all active:scale-95 duration-200"
+                            className="w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-base font-black rounded-2xl shadow-xl shadow-violet-600/25 transition-all active:scale-95"
                         >
-                            Generate {selectedDays}-Day Plan
+                            Generate Path
                             <ArrowRight className="w-5 h-5" />
                         </button>
                     </div>
@@ -198,59 +208,58 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-red-500/50">
-                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-black text-white mb-4 flex items-center gap-2 uppercase tracking-widest font-mono">
                         <AlertCircle className="w-4 h-4 text-red-400" />
-                        Concept Gaps
+                        Neural Gaps
                     </h3>
                     {result.conceptGaps?.length > 0 ? (
                         <ul className="space-y-3">
                             {result.conceptGaps.slice(0, 5).map((gap, i) => (
-                                <li key={i} className="text-xs text-slate-400 flex items-start gap-2 bg-white/5 p-2 rounded-lg">
-                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                                <li key={i} className="text-xs text-slate-400 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0 shadow-[0_0_8px_#ef4444]" />
                                     {gap}
                                 </li>
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-xs text-text-tertiary italic">No specific gaps identified.</p>
+                        <p className="text-xs text-text-tertiary italic">System identifies no specific gaps.</p>
                     )}
                 </div>
 
                 <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-yellow-500/50">
-                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-black text-white mb-4 flex items-center gap-2 uppercase tracking-widest font-mono">
                         <AlertCircle className="w-4 h-4 text-yellow-400" />
-                        Careless Errors
+                        Operational Errors
                     </h3>
                     {result.carelessMistakes?.length > 0 ? (
                         <ul className="space-y-3">
                             {result.carelessMistakes.slice(0, 5).map((mistake, i) => (
-                                <li key={i} className="text-xs text-slate-400 flex items-start gap-2 bg-white/5 p-2 rounded-lg">
-                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0" />
+                                <li key={i} className="text-xs text-slate-400 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0 shadow-[0_0_8px_#eab308]" />
                                     {mistake}
                                 </li>
                             ))}
                         </ul>
                     ) : (
-                         <p className="text-xs text-text-tertiary italic">No careless errors identified.</p>
+                         <p className="text-xs text-text-tertiary italic">System identifies zero operational errors.</p>
                     )}
                 </div>
             </div>
         </div>
 
-        {/* Right Col: Charts */}
         <div className="lg:col-span-1">
-            <div className="glass-panel p-6 rounded-2xl h-full flex flex-col justify-center items-center relative overflow-hidden">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
-                 <div className="w-56 h-56 relative z-10">
+            <div className="glass-panel p-8 rounded-2xl h-full flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-b from-surface to-background">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[80px]"></div>
+                 <div className="w-64 h-64 relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
                                 data={accuracyData}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={70}
-                                outerRadius={90}
-                                paddingAngle={4}
+                                innerRadius={80}
+                                outerRadius={105}
+                                paddingAngle={6}
                                 dataKey="value"
                                 stroke="none"
                             >
@@ -259,32 +268,36 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ result, onViewPlan,
                             ))}
                             </Pie>
                             <Tooltip 
-                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', backdropFilter: 'blur(8px)' }}
+                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', fontSize: '11px', backdropFilter: 'blur(12px)', fontWeight: 'bold' }}
                                 itemStyle={{ color: '#f8fafc' }}
                             />
                         </PieChart>
                     </ResponsiveContainer>
                     
-                    {/* Center Text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-3xl font-black text-white">{scorePercentage}%</span>
-                        <span className="text-xs text-text-tertiary uppercase tracking-widest">Accuracy</span>
+                        <span className="text-5xl font-black text-white tracking-tighter">{scorePercentage}%</span>
+                        <span className="text-[10px] text-text-tertiary uppercase tracking-[0.3em] font-mono mt-1">Accuracy</span>
                     </div>
                  </div>
                  
-                 <div className="mt-8 flex gap-8 text-xs relative z-10">
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                        <span className="text-text-secondary font-medium">Correct</span>
+                 <div className="mt-12 space-y-4 w-full px-4 relative z-10">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                            <span className="text-xs text-text-secondary font-bold font-mono">CORRECT</span>
+                        </div>
+                        <span className="text-xs font-bold text-white font-mono">{result.score}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
-                        <span className="text-text-secondary font-medium">Incorrect</span>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                            <span className="text-xs text-text-secondary font-bold font-mono">INCORRECT</span>
+                        </div>
+                        <span className="text-xs font-bold text-white font-mono">{result.totalQuestions - result.score}</span>
                     </div>
                 </div>
             </div>
         </div>
-
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { UserProfile, SubjectContext, ExamHistoryItem } from '../types';
-import { Play, TrendingUp, Trophy, History, BookOpen, Star, Activity, Eye, RotateCcw, X, Lock, Unlock, BarChart, Calendar, Cpu, Zap, Wand2, Trash2, ArrowRight, PlusCircle, Sparkles, BrainCircuit } from 'lucide-react';
+import { Play, TrendingUp, Trophy, History, BookOpen, Star, Activity, Eye, RotateCcw, X, Lock, Unlock, BarChart, Calendar, Cpu, Zap, Wand2, Trash2, ArrowRight, PlusCircle, Sparkles, BrainCircuit, FileSpreadsheet } from 'lucide-react';
 import { getFullExamRecord } from '../services/storageService';
 
 interface DashboardProps {
@@ -36,7 +36,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const currentLevelXp = (user.level - 1) * 1000;
   const progress = ((user.xp - currentLevelXp) / 1000) * 100;
 
-  // Filter exams that have a plan available
   const examsWithPlans = useMemo(() => {
       if (activeTab !== 'plans') return [];
       return user.history.filter(item => {
@@ -53,370 +52,374 @@ const Dashboard: React.FC<DashboardProps> = ({
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 px-6 pb-12 fade-in relative">
+    <div className="max-w-7xl mx-auto mt-8 px-6 pb-20 fade-in">
       
-      {/* Hero Section */}
-      <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-8">
-        <div>
-            <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                <span className="text-xs font-mono text-primary uppercase tracking-widest">ExamWarp AI</span>
+      {/* Dynamic Header Section */}
+      <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 pb-8 border-b border-white/5 relative">
+        <div className="relative z-10" id="welcome">
+            <div className="flex items-center gap-3 mb-3">
+                <div className="px-2 py-0.5 rounded bg-primary/10 border border-primary/20 text-[10px] font-mono text-primary font-bold tracking-widest uppercase">
+                    Neural Hub
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">
-             Welcome back, {user.name}
+            <h1 className="text-5xl font-black text-white tracking-tight leading-tight mb-2">
+                Greetings, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">{user.name}</span>
             </h1>
-            <p className="text-text-secondary text-lg">
-             Target: <span className="text-primary font-semibold border-b border-primary/30">{user.targetExam}</span>
+            <p className="text-text-secondary text-lg font-medium">
+                Focus: <span className="text-text-primary underline decoration-primary/40 underline-offset-4">{user.targetExam}</span>
             </p>
         </div>
-        <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
-            <Activity className="w-5 h-5 text-emerald-400" />
-            <div className="flex flex-col text-right">
-                <span className="text-[10px] text-text-tertiary uppercase font-bold">System Status</span>
-                <span className="text-emerald-400 font-mono text-sm leading-none">ONLINE</span>
+        
+        <div className="flex items-center gap-4 bg-surface border border-white/10 p-5 rounded-2xl shadow-2xl backdrop-blur-xl relative z-10 group overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <Activity className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[10px] text-text-tertiary font-bold uppercase tracking-widest font-mono">Cognitive Load</span>
+                <span className="text-xl font-mono text-white">OPTIMIZED</span>
             </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-8 border-b border-border mb-10 overflow-x-auto">
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-10 mb-12 border-b border-white/5 overflow-x-auto no-scrollbar pb-1" id="tour-tabs">
           {['overview', 'plans', 'history'].map((tab) => (
              <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
-                className={`pb-3 text-sm font-medium transition-all duration-300 relative px-2 tracking-wide uppercase ${activeTab === tab ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                className={`
+                    pb-4 text-xs font-bold transition-all duration-300 relative px-2 tracking-[0.2em] uppercase whitespace-nowrap
+                    ${activeTab === tab ? 'text-primary' : 'text-text-tertiary hover:text-text-primary'}
+                `}
             >
-                {tab}
-                {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_10px_rgba(6,182,212,0.5)]" />}
+                {tab === 'plans' ? 'Revision Path' : tab}
+                {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_0_20px_rgba(6,182,212,0.8)]" />
+                )}
             </button>
           ))}
       </div>
 
       {activeTab === 'overview' && (
-        <div className="space-y-10">
+        <div className="space-y-12">
             
-            {/* 1. Primary Action Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Primary Navigation Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                {/* Active Session Card */}
-                {activeContext && onResumeSession ? (
-                    <div 
-                        onClick={onResumeSession}
-                        className="group relative overflow-hidden rounded-2xl bg-surface border border-primary/30 p-6 cursor-pointer transition-all hover:border-primary/60 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] flex flex-col justify-between h-64"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
-                        
-                        <div className="relative z-10 flex justify-between items-start">
-                            <div className="p-3 rounded-xl bg-primary/20 text-primary border border-primary/20">
-                                <Play className="w-8 h-8 fill-current" />
+                {/* 1. Active Assessment Card */}
+                <div className="lg:col-span-1 h-full">
+                    {activeContext && onResumeSession ? (
+                        <button 
+                            onClick={onResumeSession}
+                            className="w-full h-full text-left glass-panel rounded-3xl p-8 border border-primary/30 group relative overflow-hidden flex flex-col justify-between transition-all hover:border-primary/60 hover:shadow-[0_0_40px_rgba(6,182,212,0.15)] active:scale-[0.98]"
+                        >
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 transition-all duration-700"></div>
+                            
+                            <div className="relative z-10 flex justify-between items-start mb-12">
+                                <div className="p-4 rounded-2xl bg-primary/20 text-primary border border-primary/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                    <Play className="w-8 h-8 fill-current" />
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest font-mono">In Progress</span>
+                                </div>
                             </div>
-                            <span className="flex h-3 w-3 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                            </span>
-                        </div>
 
-                        <div className="relative z-10 mt-auto">
-                            <span className="text-xs font-bold text-primary uppercase tracking-wider mb-1 block">Active Session</span>
-                            <h3 className="text-xl font-bold text-white mb-1 truncate" title={activeContext.subjectName}>{activeContext.subjectName}</h3>
-                            <p className="text-sm text-text-secondary truncate">{activeContext.examType}</p>
-                            <div className="mt-4 flex items-center gap-2 text-xs font-mono text-primary group-hover:translate-x-1 transition-transform">
-                                Resume Now <ArrowRight className="w-3 h-3" />
+                            <div className="relative z-10">
+                                <h3 className="text-2xl font-black text-white mb-2 line-clamp-2 leading-tight">
+                                    {activeContext.subjectName}
+                                </h3>
+                                <p className="text-sm text-text-secondary font-medium opacity-80 mb-6 truncate">
+                                    {activeContext.examType}
+                                </p>
+                                <div className="flex items-center gap-3 text-xs font-bold text-primary group-hover:gap-4 transition-all">
+                                    CONTINUE SESSION <ArrowRight className="w-4 h-4" />
+                                </div>
                             </div>
+                        </button>
+                    ) : (
+                        <div className="w-full h-full glass-panel rounded-3xl p-8 border border-white/5 flex flex-col items-center justify-center text-center opacity-60 group relative overflow-hidden border-dashed">
+                            <Activity className="w-12 h-12 text-text-tertiary mb-4 opacity-40 group-hover:scale-110 transition-transform" />
+                            <h3 className="text-lg font-bold text-text-secondary mb-1">No Active Flow</h3>
+                            <p className="text-xs text-text-tertiary">Start a new exam to unlock tracking.</p>
                         </div>
-                    </div>
-                ) : (
-                   <div 
-                        onClick={onNewSession}
-                        className="group relative overflow-hidden rounded-2xl bg-surface border border-white/10 p-6 cursor-pointer transition-all hover:border-white/20 hover:bg-white/5 flex flex-col justify-center items-center text-center h-64 border-dashed"
-                    >
-                        <div className="p-4 rounded-full bg-white/5 text-text-tertiary mb-4 group-hover:scale-110 transition-transform">
-                            <Activity className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-lg font-bold text-text-secondary">No Active Session</h3>
-                        <p className="text-xs text-text-tertiary mt-2">Start a new exam to see progress here.</p>
-                    </div> 
-                )}
+                    )}
+                </div>
 
-                {/* New Session Card */}
-                <div 
+                {/* 2. Upload / New Session Card */}
+                <button 
+                    id="tour-new-exam"
                     onClick={onNewSession}
-                    className="group relative overflow-hidden rounded-2xl bg-surface border border-secondary/30 p-6 cursor-pointer transition-all hover:border-secondary/60 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)] flex flex-col justify-between h-64"
+                    className="w-full h-full text-left glass-panel rounded-3xl p-8 border border-secondary/30 group relative overflow-hidden flex flex-col justify-between transition-all hover:border-secondary/60 hover:shadow-[0_0_40px_rgba(139,92,246,0.15)] active:scale-[0.98]"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-secondary/20 transition-all duration-700"></div>
                     
-                    <div className="relative z-10 flex justify-between items-start">
-                        <div className="p-3 rounded-xl bg-secondary/20 text-secondary border border-secondary/20">
+                    <div className="relative z-10 flex justify-between items-start mb-12">
+                        <div className="p-4 rounded-2xl bg-secondary/20 text-secondary border border-secondary/30 shadow-inner group-hover:rotate-12 transition-transform duration-500">
                             <PlusCircle className="w-8 h-8" />
                         </div>
                     </div>
 
-                    <div className="relative z-10 mt-auto">
-                        <span className="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block">New Assessment</span>
-                        <h3 className="text-xl font-bold text-white mb-1">Upload Material</h3>
-                        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
-                            Generate adaptive exams from your PDFs, textbooks, or notes using AI.
+                    <div className="relative z-10">
+                        <h3 className="text-2xl font-black text-white mb-2 leading-tight">
+                            Generate Exam
+                        </h3>
+                        <p className="text-sm text-text-secondary font-medium opacity-80 mb-6 line-clamp-2">
+                            Synthesize questions from PDFs, notes, or textbooks using advanced neural patterns.
                         </p>
-                        <div className="mt-4 flex items-center gap-2 text-xs font-mono text-secondary group-hover:translate-x-1 transition-transform">
-                            Start Upload <ArrowRight className="w-3 h-3" />
+                        <div className="flex items-center gap-3 text-xs font-bold text-secondary group-hover:gap-4 transition-all">
+                            LAUNCH CREATOR <ArrowRight className="w-4 h-4" />
                         </div>
                     </div>
-                </div>
+                </button>
 
-                {/* Smart Tools Card */}
-                <div 
+                {/* 3. Smart Tools Card */}
+                <button 
+                    id="tour-notes"
                     onClick={onOpenNotesFormatter}
-                    className="group relative overflow-hidden rounded-2xl bg-surface border border-pink-500/30 p-6 cursor-pointer transition-all hover:border-pink-500/60 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] flex flex-col justify-between h-64"
+                    className="w-full h-full text-left glass-panel rounded-3xl p-8 border border-pink-500/30 group relative overflow-hidden flex flex-col justify-between transition-all hover:border-pink-500/60 hover:shadow-[0_0_40px_rgba(236,72,153,0.15)] active:scale-[0.98]"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-pink-500/20 transition-all duration-700"></div>
                     
-                    <div className="relative z-10 flex justify-between items-start">
-                        <div className="p-3 rounded-xl bg-pink-500/20 text-pink-400 border border-pink-500/20">
+                    <div className="relative z-10 flex justify-between items-start mb-12">
+                        <div className="p-4 rounded-2xl bg-pink-500/20 text-pink-400 border border-pink-500/30 shadow-inner group-hover:-rotate-12 transition-transform duration-500">
                             <Wand2 className="w-8 h-8" />
                         </div>
-                        <div className="px-2 py-1 rounded-md bg-pink-500/20 border border-pink-500/30 text-[10px] font-bold text-pink-300 uppercase">
-                            Beta
-                        </div>
+                        <span className="px-2 py-1 rounded bg-pink-500/20 border border-pink-500/30 text-[9px] font-black text-pink-300 uppercase tracking-widest">Enhanced</span>
                     </div>
 
-                    <div className="relative z-10 mt-auto">
-                        <span className="text-xs font-bold text-pink-400 uppercase tracking-wider mb-1 block">Smart Tools</span>
-                        <h3 className="text-xl font-bold text-white mb-1">Notes Formatter</h3>
-                        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
-                            Transform rough scribbles and bullet points into structured study guides.
+                    <div className="relative z-10">
+                        <h3 className="text-2xl font-black text-white mb-2 leading-tight">
+                            Notes Architect
+                        </h3>
+                        <p className="text-sm text-text-secondary font-medium opacity-80 mb-6 line-clamp-2">
+                            Transform messy lecture rough-notes into structured, professional knowledge assets.
                         </p>
-                        <div className="mt-4 flex items-center gap-2 text-xs font-mono text-pink-400 group-hover:translate-x-1 transition-transform">
-                            Open Tool <ArrowRight className="w-3 h-3" />
+                        <div className="flex items-center gap-3 text-xs font-bold text-pink-400 group-hover:gap-4 transition-all">
+                            OPEN ARCHITECT <ArrowRight className="w-4 h-4" />
                         </div>
                     </div>
-                </div>
+                </button>
 
             </div>
 
-            {/* 2. Stats & Insights */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Metrics & Intelligence Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8" id="tour-stats">
                 
-                {/* Stats Grid */}
-                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                     <button 
+                {/* Detailed Stats Column */}
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <button 
                         onClick={() => setShowXpModal(true)}
-                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-primary/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
+                        className="group glass-panel rounded-2xl p-6 border border-white/5 hover:border-primary/40 transition-all text-left flex flex-col justify-between h-40 relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
-                            <Cpu className="w-16 h-16 text-primary" />
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-125 duration-500">
+                            <Cpu className="w-20 h-20 text-primary" />
                         </div>
-                        <div className="relative z-10 text-xs font-bold text-primary uppercase tracking-widest mb-2">Total XP</div>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 font-mono">Experience Engine</span>
                         <div className="relative z-10">
-                             <div className="text-2xl font-black text-white group-hover:text-primary transition-colors">{user.xp.toLocaleString()}</div>
-                             <div className="w-full h-1 bg-white/10 mt-2 rounded-full overflow-hidden">
-                                <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
+                             <div className="text-4xl font-black text-white group-hover:translate-x-1 transition-transform">{user.xp.toLocaleString()}</div>
+                             <div className="w-full h-1.5 bg-white/5 mt-4 rounded-full overflow-hidden border border-white/5">
+                                <div className="h-full bg-primary shadow-[0_0_10px_#06b6d4]" style={{ width: `${progress}%` }} />
                             </div>
                         </div>
                     </button>
 
                     <button 
                         onClick={() => setShowLevelModal(true)}
-                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-emerald-500/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
+                        className="group glass-panel rounded-2xl p-6 border border-white/5 hover:border-emerald-500/40 transition-all text-left flex flex-col justify-between h-40 relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
-                            <Trophy className="w-16 h-16 text-emerald-500" />
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-125 duration-500">
+                            <Trophy className="w-20 h-20 text-emerald-500" />
                         </div>
-                        <div className="relative z-10 text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Current Rank</div>
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 font-mono">Synaptic Rank</span>
                         <div className="relative z-10">
-                             <div className="text-2xl font-black text-white group-hover:text-emerald-400 transition-colors">LVL {user.level}</div>
-                             <div className="text-[10px] text-text-tertiary mt-1 font-mono">NEXT: {(user.level + 1) * 1000} XP</div>
+                             <div className="text-4xl font-black text-white group-hover:translate-x-1 transition-transform">LVL {user.level}</div>
+                             <div className="text-[10px] text-text-tertiary mt-3 font-mono font-bold">REACH {(user.level + 1) * 1000} XP FOR NEXT RANK</div>
                         </div>
                     </button>
 
                     <button 
                         onClick={() => setActiveTab('history')}
-                        className="glass-panel p-5 rounded-xl border border-white/5 hover:border-secondary/40 transition-all text-left group relative overflow-hidden flex flex-col justify-between h-32"
+                        className="group glass-panel rounded-2xl p-6 border border-white/5 hover:border-secondary/40 transition-all text-left flex flex-col justify-between h-40 relative overflow-hidden"
                     >
-                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:rotate-12">
-                            <History className="w-16 h-16 text-secondary" />
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-125 duration-500">
+                            <History className="w-20 h-20 text-secondary" />
                         </div>
-                        <div className="relative z-10 text-xs font-bold text-secondary uppercase tracking-widest mb-2">Exams Taken</div>
+                        <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-4 font-mono">Task History</span>
                         <div className="relative z-10">
-                             <div className="text-2xl font-black text-white group-hover:text-secondary transition-colors">{user.history.length}</div>
-                             <div className="text-[10px] text-text-tertiary mt-1 font-mono group-hover:text-white transition-colors">View History &rarr;</div>
+                             <div className="text-4xl font-black text-white group-hover:translate-x-1 transition-transform">{user.history.length}</div>
+                             <div className="text-[10px] text-text-tertiary mt-3 font-mono font-bold group-hover:text-white transition-colors flex items-center gap-1">
+                                VIEW ALL LOGS <ArrowRight className="w-3 h-3" />
+                             </div>
                         </div>
                     </button>
                 </div>
 
-                {/* Insight Card */}
-                <div className="lg:col-span-1 glass-panel rounded-xl p-6 border border-white/10 flex flex-col justify-between h-full bg-gradient-to-b from-white/5 to-transparent">
-                     <div>
-                        <div className="flex items-center gap-2 mb-4 text-white">
-                            <BrainCircuit className="w-5 h-5 text-yellow-400" />
-                            <h3 className="font-bold text-sm tracking-wide">AI INSIGHT</h3>
+                {/* AI Personal Mentor Widget */}
+                <div className="lg:col-span-1 glass-panel rounded-2xl p-8 border border-white/5 flex flex-col justify-between bg-gradient-to-br from-surface to-background relative group">
+                    <div className="absolute -top-12 -right-12 w-40 h-40 bg-yellow-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-yellow-500/20 transition-all duration-1000"></div>
+                    
+                    <div>
+                        <div className="flex items-center gap-3 mb-6 text-white">
+                            <div className="w-8 h-8 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
+                                <BrainCircuit className="w-5 h-5 text-yellow-400" />
+                            </div>
+                            <h3 className="font-bold text-xs tracking-widest uppercase font-mono">AI Feedback</h3>
                         </div>
-                        <p className="text-sm text-slate-300 leading-relaxed italic relative pl-4 border-l-2 border-yellow-400/50">
-                            "Consistency is your greatest asset. Based on your recent activity, try to focus on closing small concept gaps in your next session to boost your XP multiplier."
+                        <p className="text-sm text-slate-300 leading-relaxed italic relative pl-4 border-l-2 border-yellow-400/40">
+                            "Concentrated study sessions are yielding high retention. Aim for a 90% accuracy in your next session to trigger a critical level-up reward."
                         </p>
-                     </div>
-                     <div className="mt-4 pt-4 border-t border-white/5">
-                        <div className="flex justify-between items-center text-xs font-mono text-text-tertiary">
-                             <span>Engagement</span>
-                             <span className="text-emerald-400">High</span>
-                        </div>
-                     </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                         <span className="text-[9px] font-black text-text-tertiary uppercase tracking-widest font-mono">Intelligence Matrix</span>
+                         <span className="text-[10px] font-bold text-emerald-400 font-mono">OPTIMAL</span>
+                    </div>
                 </div>
 
             </div>
         </div>
       )}
 
-      {/* Plans Tab Content */}
       {activeTab === 'plans' && (
-          <div className="animate-slide-up">
+          <div className="animate-slide-up grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {examsWithPlans.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {examsWithPlans.map(item => (
-                          <div key={item.id} className="glass-panel rounded-xl p-6 group hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col justify-between h-full min-h-[220px]">
-                              <div>
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="w-10 h-10 rounded-lg bg-cyan-900/20 flex items-center justify-center border border-cyan-500/30">
-                                        <Calendar className="w-5 h-5 text-cyan-400" />
-                                    </div>
-                                    <button 
-                                        onClick={(e) => handleDelete(item.id, e)}
-                                        className="text-text-tertiary hover:text-red-400 p-2 rounded-full hover:bg-white/5 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                  examsWithPlans.map(item => (
+                      <div key={item.id} className="glass-panel rounded-3xl p-8 group hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col justify-between h-72">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl rounded-full"></div>
+                          <div>
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-cyan-900/20 flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition-transform">
+                                    <Calendar className="w-6 h-6 text-cyan-400" />
                                 </div>
-                                <h3 className="text-lg font-bold text-white mb-1 truncate">{item.subjectName}</h3>
-                                <p className="text-xs text-text-secondary mb-4">Created: {new Date(item.date).toLocaleDateString()}</p>
-                                
-                                <div className="flex items-center gap-2 mb-6">
-                                    <div className={`px-2 py-0.5 rounded text-[10px] font-bold border ${item.score/item.totalQuestions > 0.7 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
-                                        {Math.round((item.score/item.totalQuestions) * 100)}% SCORE
-                                    </div>
-                                </div>
-                              </div>
-
-                              <button 
-                                onClick={() => onViewPlan && onViewPlan(item.id)}
-                                className="w-full py-3 bg-white/5 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/30 text-cyan-400 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
-                              >
-                                  Open Revision Plan <ArrowRight className="w-3 h-3" />
-                              </button>
+                                <button 
+                                    onClick={(e) => handleDelete(item.id, e)}
+                                    className="text-text-tertiary hover:text-red-400 p-2 rounded-xl hover:bg-white/5 transition-all active:scale-90"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <h3 className="text-xl font-black text-white mb-1 truncate">{item.subjectName}</h3>
+                            <p className="text-xs text-text-tertiary mb-6 font-mono font-bold uppercase tracking-widest">
+                                Assigned: {new Date(item.date).toLocaleDateString()}
+                            </p>
+                            
+                            <div className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border font-mono tracking-widest bg-white/5 border-white/10 text-text-secondary">
+                                EFFICIENCY: {Math.round((item.score/item.totalQuestions) * 100)}%
+                            </div>
                           </div>
-                      ))}
-                  </div>
+
+                          <button 
+                            onClick={() => onViewPlan && onViewPlan(item.id)}
+                            className="w-full py-4 bg-white/5 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/30 text-cyan-400 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-widest"
+                          >
+                              Access Path <ArrowRight className="w-4 h-4" />
+                          </button>
+                      </div>
+                  ))
               ) : (
-                  <div className="flex flex-col items-center justify-center py-24 text-text-tertiary border-2 border-dashed border-white/5 rounded-2xl bg-white/5">
-                      <Calendar className="w-12 h-12 mb-4 opacity-50" />
-                      <p className="mb-2 font-medium">No active revision plans found.</p>
-                      <p className="text-xs max-w-xs text-center">Complete an exam and generate a plan to see it here.</p>
+                  <div className="col-span-full flex flex-col items-center justify-center py-32 text-text-tertiary border-2 border-dashed border-white/5 rounded-[40px] bg-white/5">
+                      <Calendar className="w-16 h-16 mb-6 opacity-20" />
+                      <p className="mb-2 font-bold text-white tracking-widest uppercase text-xs">Path Empty</p>
+                      <p className="text-xs max-w-xs text-center leading-relaxed">Complete an assessment and generate a revision schedule to see it here.</p>
                   </div>
               )}
           </div>
       )}
 
-      {/* History Tab Content */}
       {activeTab === 'history' && (
-        <div className="glass-panel rounded-xl overflow-hidden animate-slide-up border border-primary/20">
-            <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="bg-white/5 border-b border-white/10 text-[10px] uppercase text-primary tracking-widest font-mono font-bold">
-                        <th className="p-5">Date</th>
-                        <th className="p-5">Exam Name</th>
-                        <th className="p-5 text-center">Score</th>
-                        <th className="p-5 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {user.history.map((item) => (
-                        <tr key={item.id} className="hover:bg-white/5 transition-colors group">
-                            <td className="p-5 text-sm text-text-tertiary font-mono">
-                                {new Date(item.date).toLocaleDateString()}
-                            </td>
-                            <td className="p-5 text-sm text-white font-bold">
-                                {item.subjectName}
-                            </td>
-                            <td className="p-5 text-center">
-                                <span className={`
-                                    inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono
-                                    ${item.score / item.totalQuestions >= 0.7 ? 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'}
-                                `}>
-                                    {Math.round((item.score / item.totalQuestions) * 100)}%
-                                </span>
-                            </td>
-                            <td className="p-5 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                    <button 
-                                        onClick={() => onViewPlan && onViewPlan(item.id)}
-                                        className="p-2 hover:bg-primary/10 border border-transparent hover:border-primary/30 rounded text-text-secondary hover:text-primary transition-all" 
-                                        title="View Plan"
-                                    >
-                                        <Calendar className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        onClick={() => onViewResult && onViewResult(item.id)}
-                                        className="p-2 hover:bg-secondary/10 border border-transparent hover:border-secondary/30 rounded text-text-secondary hover:text-secondary transition-all" 
-                                        title="Analytics"
-                                    >
-                                        <BarChart className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        onClick={() => onReviewExam && onReviewExam(item.id)}
-                                        className="p-2 hover:bg-white/10 border border-transparent hover:border-white/20 rounded text-text-secondary hover:text-white transition-all" 
-                                        title="Review"
-                                    >
-                                        <Eye className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        onClick={() => onRetakeExam && onRetakeExam(item.id)}
-                                        className="p-2 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 rounded text-text-secondary hover:text-emerald-400 transition-all" 
-                                        title="Retake"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                    </button>
-                                    <div className="w-px h-4 bg-white/10 mx-1"></div>
-                                    <button 
-                                        onClick={(e) => handleDelete(item.id, e)}
-                                        className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 rounded text-text-tertiary hover:text-red-400 transition-all" 
-                                        title="Delete"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </td>
+        <div className="glass-panel rounded-3xl overflow-hidden animate-slide-up border border-white/5">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-white/5 border-b border-white/10 text-[10px] uppercase text-primary tracking-[0.2em] font-mono font-bold">
+                            <th className="p-6">Timestamp</th>
+                            <th className="p-6">Module Name</th>
+                            <th className="p-6 text-center">Outcome</th>
+                            <th className="p-6 text-right pr-10">Operations</th>
                         </tr>
-                    ))}
-                    {user.history.length === 0 && (
-                        <tr>
-                            <td colSpan={4} className="p-12 text-center text-text-tertiary text-sm font-mono">
-                                [NO EXAM HISTORY FOUND]
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {user.history.map((item) => (
+                            <tr key={item.id} className="hover:bg-white/5 transition-colors group">
+                                <td className="p-6 text-[11px] text-text-tertiary font-mono">
+                                    {new Date(item.date).toLocaleDateString()}
+                                </td>
+                                <td className="p-6 text-sm text-white font-bold tracking-tight">
+                                    {item.subjectName}
+                                </td>
+                                <td className="p-6 text-center">
+                                    <span className={`
+                                        inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black font-mono tracking-widest border
+                                        ${item.score / item.totalQuestions >= 0.7 ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' : 'text-rose-400 bg-rose-400/10 border-rose-400/30'}
+                                    `}>
+                                        {Math.round((item.score / item.totalQuestions) * 100)}%
+                                    </span>
+                                </td>
+                                <td className="p-6 text-right pr-10">
+                                    <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        {[
+                                            { icon: Calendar, onClick: () => onViewPlan && onViewPlan(item.id), color: 'hover:text-primary', label: 'Path' },
+                                            { icon: BarChart, onClick: () => onViewResult && onViewResult(item.id), color: 'hover:text-secondary', label: 'Stats' },
+                                            { icon: Eye, onClick: () => onReviewExam && onReviewExam(item.id), color: 'hover:text-white', label: 'Inspect' },
+                                            { icon: RotateCcw, onClick: () => onRetakeExam && onRetakeExam(item.id), color: 'hover:text-emerald-400', label: 'Retry' }
+                                        ].map((act, i) => (
+                                            <button 
+                                                key={i}
+                                                onClick={act.onClick}
+                                                className={`p-2.5 bg-white/5 border border-transparent hover:border-white/10 rounded-xl transition-all active:scale-90 ${act.color}`}
+                                                title={act.label}
+                                            >
+                                                <act.icon className="w-4 h-4" />
+                                            </button>
+                                        ))}
+                                        <div className="w-px h-6 bg-white/10 mx-2"></div>
+                                        <button 
+                                            onClick={(e) => handleDelete(item.id, e)}
+                                            className="p-2.5 bg-white/5 border border-transparent hover:bg-rose-500/10 hover:border-rose-500/20 rounded-xl text-text-tertiary hover:text-rose-400 transition-all active:scale-90" 
+                                            title="Delete"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        {user.history.length === 0 && (
+                            <tr>
+                                <td colSpan={4} className="p-20 text-center text-text-tertiary text-xs font-mono font-bold tracking-[0.3em] uppercase opacity-40">
+                                    [ No records found in static memory ]
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
       )}
 
-      {/* Modals */}
+      {/* Modals remain same logic but slightly refined styles */}
       {showXpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowXpModal(false)} />
-            <div className="relative glass-panel w-full max-w-md rounded-2xl p-8 animate-slide-up border border-primary/30">
-                <button onClick={() => setShowXpModal(false)} className="absolute top-4 right-4 text-text-tertiary hover:text-white"><X className="w-5 h-5"/></button>
+            <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowXpModal(false)} />
+            <div className="relative glass-panel w-full max-w-md rounded-[40px] p-12 animate-slide-up border border-primary/30 shadow-[0_0_100px_rgba(6,182,212,0.2)]">
+                <button onClick={() => setShowXpModal(false)} className="absolute top-8 right-8 text-text-tertiary hover:text-white transition-all active:scale-90"><X className="w-6 h-6"/></button>
                 <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 border border-primary/50 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
-                        <Cpu className="w-10 h-10 text-primary" />
+                    <div className="w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center mb-8 border border-primary/40 shadow-[0_0_40px_rgba(6,182,212,0.4)]">
+                        <Cpu className="w-12 h-12 text-primary" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2 font-mono">TOTAL EXPERIENCE</h2>
-                    <div className="text-4xl font-black text-primary mb-6">{user.xp.toLocaleString()} <span className="text-lg text-primary/50 font-medium">XP</span></div>
+                    <h2 className="text-sm font-black text-primary uppercase tracking-[0.4em] mb-4 font-mono">Experience Matrix</h2>
+                    <div className="text-5xl font-black text-white mb-8 tracking-tighter">{user.xp.toLocaleString()} <span className="text-xl text-primary/40 font-mono">XP</span></div>
                     
-                    <div className="w-full bg-black/50 rounded-lg p-4 border border-white/10 mb-6 text-left">
-                        <div className="flex justify-between text-sm mb-2 font-mono">
-                            <span className="text-text-secondary">NEXT LEVEL</span>
+                    <div className="w-full bg-surface border border-white/5 rounded-3xl p-6 mb-8 text-left">
+                        <div className="flex justify-between items-center text-xs mb-4 font-mono font-bold uppercase tracking-widest">
+                            <span className="text-text-secondary">Path to Evolution</span>
                             <span className="text-primary">{Math.round(progress)}%</span>
                         </div>
-                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
+                        <div className="w-full h-2 bg-background rounded-full overflow-hidden border border-white/5">
+                            <div className="h-full bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_15px_#06b6d4]" style={{ width: `${progress}%` }} />
                         </div>
                     </div>
                 </div>
@@ -426,30 +429,31 @@ const Dashboard: React.FC<DashboardProps> = ({
       
        {showLevelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowLevelModal(false)} />
-            <div className="relative glass-panel w-full max-w-md rounded-2xl p-8 animate-slide-up border border-emerald-500/30">
-                <button onClick={() => setShowLevelModal(false)} className="absolute top-4 right-4 text-text-tertiary hover:text-white"><X className="w-5 h-5"/></button>
+            <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowLevelModal(false)} />
+            <div className="relative glass-panel w-full max-w-md rounded-[40px] p-12 animate-slide-up border border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.2)]">
+                <button onClick={() => setShowLevelModal(false)} className="absolute top-8 right-8 text-text-tertiary hover:text-white transition-all active:scale-90"><X className="w-6 h-6"/></button>
                 <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                        <Trophy className="w-10 h-10 text-emerald-500" />
+                    <div className="w-24 h-24 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mb-8 border border-emerald-500/40 shadow-[0_0_40px_rgba(16,185,129,0.4)]">
+                        <Trophy className="w-12 h-12 text-emerald-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-6 font-mono">RANK PROGRESS</h2>
+                    <h2 className="text-sm font-black text-emerald-500 uppercase tracking-[0.4em] mb-8 font-mono">Rank Progress</h2>
                     
-                     <div className="w-full space-y-3 font-mono">
-                        <div className="flex items-center gap-4 p-3 bg-emerald-500/10 border border-emerald-500/40 rounded-lg">
-                            <div className="font-bold text-emerald-400 w-8">L{user.level}</div>
-                            <div className="text-left text-sm">
-                                <div className="text-white font-medium">CURRENT</div>
+                     <div className="w-full space-y-4">
+                        <div className="flex items-center gap-6 p-5 bg-emerald-500/10 border border-emerald-500/40 rounded-3xl group transition-all">
+                            <div className="font-black text-emerald-400 text-2xl font-mono">L{user.level}</div>
+                            <div className="text-left">
+                                <div className="text-white font-black text-xs uppercase tracking-widest font-mono">Current Status</div>
+                                <div className="text-emerald-400/80 text-[10px] font-bold font-mono">ACTIVE OPERATIVE</div>
                             </div>
-                            <Unlock className="w-4 h-4 text-emerald-400 ml-auto" />
+                            <Unlock className="w-5 h-5 text-emerald-400 ml-auto group-hover:scale-110 transition-transform" />
                         </div>
-                        <div className="flex items-center gap-4 p-3 bg-white/5 border border-white/10 rounded-lg opacity-60">
-                            <div className="font-bold text-text-tertiary w-8">L{user.level + 1}</div>
-                            <div className="text-left text-sm">
-                                <div className="text-text-secondary font-medium">NEXT RANK</div>
-                                <div className="text-text-tertiary text-xs">Req: {nextLevelXp} XP</div>
+                        <div className="flex items-center gap-6 p-5 bg-white/5 border border-white/10 rounded-3xl opacity-40 grayscale group transition-all">
+                            <div className="font-black text-text-tertiary text-2xl font-mono">L{user.level + 1}</div>
+                            <div className="text-left">
+                                <div className="text-text-secondary font-black text-xs uppercase tracking-widest font-mono">Next Evolution</div>
+                                <div className="text-text-tertiary text-[10px] font-bold font-mono">REQ: {nextLevelXp} XP</div>
                             </div>
-                            <Lock className="w-4 h-4 text-text-tertiary ml-auto" />
+                            <Lock className="w-5 h-5 text-text-tertiary ml-auto" />
                         </div>
                     </div>
                 </div>

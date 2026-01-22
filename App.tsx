@@ -1,3 +1,4 @@
+
 import React, { useState, Suspense, useEffect } from 'react';
 import { 
   AppView, 
@@ -30,11 +31,14 @@ const Onboarding = React.lazy(() => import('./components/Onboarding'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
 const SummaryView = React.lazy(() => import('./components/SummaryView'));
 const NotesFormatter = React.lazy(() => import('./components/NotesFormatter'));
+const NeuralTour = React.lazy(() => import('./components/NeuralTour'));
+const ExamExportView = React.lazy(() => import('./components/ExamExportView'));
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.ONBOARDING); 
   const [loadingState, setLoadingState] = useState<{msg: string, sub?: string} | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   // User State
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -66,6 +70,9 @@ const App: React.FC = () => {
     if (profile) {
         setUserProfile(profile);
         setView(AppView.DASHBOARD);
+        if (profile.hasSeenTour === false) {
+           setShowTour(true);
+        }
     } else {
         setView(AppView.ONBOARDING);
     }
@@ -75,6 +82,13 @@ const App: React.FC = () => {
       const newProfile = StorageService.createUserProfile(name, exam);
       setUserProfile(newProfile);
       setView(AppView.DASHBOARD);
+      setShowTour(true);
+  };
+
+  const handleTourComplete = () => {
+     setShowTour(false);
+     const updated = StorageService.setHasSeenTour(true);
+     if (updated) setUserProfile(updated);
   };
 
   const handleUpload = async (content: string) => {
@@ -119,7 +133,7 @@ const App: React.FC = () => {
     try {
         const generatedQuestions = await GeminiService.generateExamQuestions(uploadedContent, topics, config, confirmedContext);
         if (!generatedQuestions || generatedQuestions.length === 0) {
-            alert("The AI could not generate valid questions from the content. Please try adjusting the settings or uploading clearer content.");
+            alert("The AI could not generate valid questions from the content.");
             setLoadingState(null);
             return;
         }
@@ -140,7 +154,7 @@ const App: React.FC = () => {
       setActiveRecordId(null);
       
       if (filterIncorrect && userAnswers.length > 0) {
-          const wrongQuestionIds = questions.filter((q, idx) => {
+          const wrongQuestionIds = questions.filter((q) => {
              const ans = userAnswers.find(a => a.questionId === q.id);
              if (q.type === 'MCQ') {
                  return ans?.selectedOptionIndex !== q.correctAnswerIndex;
@@ -151,7 +165,6 @@ const App: React.FC = () => {
           const subsetQuestions = questions.filter(q => wrongQuestionIds.includes(q.id));
           
           if (subsetQuestions.length === 0) {
-              alert("Perfect score on MCQs detected. Initiating full module retake.");
               setQuestions([...questions]); 
           } else {
               setQuestions(subsetQuestions);
@@ -240,7 +253,6 @@ const App: React.FC = () => {
       const updatedProfile = StorageService.deleteExamRecord(id);
       if (updatedProfile) {
           setUserProfile(updatedProfile);
-          // If the deleted exam was the currently active context, reset to dashboard
           if (activeRecordId === id) {
               setResult(null);
               setPlan(null);
@@ -260,7 +272,6 @@ const App: React.FC = () => {
     try {
         const { result: examResult, plan: revisionPlan } = await GeminiService.analyzePerformance(questions, answers);
         
-        // Safety check if analysis failed
         if (!examResult || !examResult.score && examResult.score !== 0) {
              throw new Error("Invalid analysis result");
         }
@@ -318,11 +329,10 @@ const App: React.FC = () => {
           
           setPlan(newPlan);
           
-          // Update persistent record
           const record = StorageService.getFullExamRecord(activeRecordId);
           if (record) {
               record.plan = newPlan;
-              record.revisionProgress = []; // Reset progress on new plan
+              record.revisionProgress = [];
               StorageService.saveFullExamRecord(record);
               setRevisionProgress([]);
           }
@@ -412,24 +422,23 @@ const App: React.FC = () => {
     <div className="min-h-screen font-sans bg-background text-text-primary selection:bg-primary/30 selection:text-cyan-200">
         
         {loadingState && <LoadingScreen message={loadingState.msg} subMessage={loadingState.sub} />}
+        {showTour && userProfile && <NeuralTour userName={userProfile.name} onComplete={handleTourComplete} />}
 
-        {/* Info Genius Header */}
-        <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20">
+        <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20 no-print">
             <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
                 <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
                         <Cpu className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-lg tracking-tight text-white leading-none">EXAMWARP</span>
-                        <span className="text-[10px] text-primary font-mono tracking-widest leading-none">AI SIMULATOR</span>
+                        <span className="font-bold text-lg tracking-tight text-white leading-none uppercase">ExamWarp</span>
+                        <span className="text-[10px] text-primary font-mono tracking-widest leading-none">AI CORE</span>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                     {userProfile && (
                         <>
-                             {/* Desktop Status Bar */}
                              {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && (
                                 <div className="hidden md:flex items-center gap-3 text-sm border-r border-white/10 pr-4">
                                     <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
@@ -440,7 +449,6 @@ const App: React.FC = () => {
                                 </div>
                              )}
                              
-                             {/* XP Module */}
                              <div 
                                 className="hidden md:flex items-center gap-2 bg-background border border-border px-3 py-1.5 rounded-md cursor-pointer hover:border-primary/50 transition-all active:scale-95 group shadow-sm"
                                 onClick={handleNavigateToDashboard}
@@ -449,7 +457,6 @@ const App: React.FC = () => {
                                 <span className="text-xs font-bold text-white font-mono">{userProfile.xp} XP</span>
                              </div>
 
-                             {/* Menu Trigger */}
                              <button 
                                 onClick={() => setIsMenuOpen(true)}
                                 className="p-2 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors active:scale-90"
@@ -462,7 +469,6 @@ const App: React.FC = () => {
             </div>
         </header>
 
-        {/* Info Genius Slide-out Menu */}
         {isMenuOpen && (
             <div className="fixed inset-0 z-50 flex justify-end">
                 <div 
@@ -472,14 +478,13 @@ const App: React.FC = () => {
                 
                 <div className="relative w-full max-w-sm glass-panel h-full border-l border-primary/20 animate-in slide-in-from-right duration-300 flex flex-col shadow-2xl">
                     <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
-                        <span className="font-bold text-lg text-white font-mono tracking-wide">MAIN MENU</span>
+                        <span className="font-bold text-lg text-white font-mono tracking-wide">SYSTEM MENU</span>
                         <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-90">
                             <X className="w-5 h-5 text-text-secondary" />
                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                        {/* User Profile Card */}
                         {userProfile && (
                             <div className="bg-gradient-to-br from-surface to-black border border-border rounded-xl p-5 flex items-center gap-4 relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
@@ -498,7 +503,6 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Nav Links */}
                         <div className="space-y-2">
                             <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-widest mb-3 px-2 font-mono">Navigation</h4>
                             
@@ -538,7 +542,7 @@ const App: React.FC = () => {
                                 End Current Session
                             </button>
                         ) : (
-                            <p className="text-center text-[10px] text-text-tertiary font-mono">ExamWarp AI • v2.0</p>
+                            <p className="text-center text-[10px] text-text-tertiary font-mono">ExamWarp Intelligence Core • v3.0</p>
                         )}
                     </div>
                 </div>
@@ -546,7 +550,7 @@ const App: React.FC = () => {
         )}
 
         <main className="w-full pb-10">
-            <Suspense fallback={<LoadingScreen message="Initializing Module..." />}>
+            <Suspense fallback={<LoadingScreen message="Initializing Subsystems..." />}>
                 
                 {view === AppView.ONBOARDING && (
                     <Onboarding onComplete={handleOnboardingComplete} />
@@ -611,6 +615,7 @@ const App: React.FC = () => {
                         onSummarize={handleGenerateSummary}
                         onRetake={() => handleRetakeExam(false)}
                         onReattemptIncorrect={() => handleRetakeExam(true)}
+                        onExportExam={() => setView(AppView.EXAM_EXPORT)}
                         isSummarizing={!!loadingState}
                     />
                 )}
@@ -634,6 +639,14 @@ const App: React.FC = () => {
                 
                 {view === AppView.NOTES_FORMATTER && (
                     <NotesFormatter onBack={handleNavigateToDashboard} />
+                )}
+
+                {view === AppView.EXAM_EXPORT && confirmedContext && (
+                    <ExamExportView 
+                      questions={questions} 
+                      onBack={() => setView(AppView.RESULTS)} 
+                      subjectName={confirmedContext.subjectName}
+                    />
                 )}
 
             </Suspense>

@@ -9,7 +9,8 @@ const INITIAL_PROFILE: UserProfile = {
   targetExam: '',
   xp: 0,
   level: 1,
-  history: []
+  history: [],
+  hasSeenTour: false
 };
 
 // User Profile Management
@@ -38,13 +39,22 @@ export const createUserProfile = (name: string, targetExam: string): UserProfile
   return newProfile;
 };
 
+export const setHasSeenTour = (hasSeen: boolean): UserProfile | null => {
+  const profile = loadUserProfile();
+  if (profile) {
+    profile.hasSeenTour = hasSeen;
+    saveUserProfile(profile);
+    return profile;
+  }
+  return null;
+};
+
 // Exam History & Record Management
 export const saveFullExamRecord = (record: FullExamRecord): void => {
   try {
     localStorage.setItem(`${EXAM_RECORD_PREFIX}${record.id}`, JSON.stringify(record));
   } catch (e) {
     console.error("Failed to save exam record", e);
-    // Potential fallback: clean up old records if storage full
   }
 };
 
@@ -63,11 +73,9 @@ export const deleteExamRecord = (id: string): UserProfile | null => {
   const profile = loadUserProfile();
   if (!profile) return null;
 
-  // Remove from history array
   profile.history = profile.history.filter(h => h.id !== id);
   saveUserProfile(profile);
 
-  // Remove actual data record
   try {
     localStorage.removeItem(`${EXAM_RECORD_PREFIX}${id}`);
   } catch (e) {
@@ -93,14 +101,13 @@ export const addXpAndHistory = (xp: number, historyItem: ExamHistoryItem, fullRe
   }
 
   const newXp = current.xp + xp;
-  // Simple level up logic: 1000 XP per level
   const newLevel = Math.floor(newXp / 1000) + 1;
   
   const updated: UserProfile = {
     ...current,
     xp: newXp,
     level: newLevel,
-    history: [historyItem, ...current.history] // Prepend recent
+    history: [historyItem, ...current.history]
   };
   
   saveUserProfile(updated);

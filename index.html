@@ -32,6 +32,7 @@
                 'fade-in': 'fadeIn 0.5s ease-out forwards',
                 'slide-up': 'slideUp 0.5s ease-out forwards',
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'float': 'float 6s ease-in-out infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -41,6 +42,10 @@
                 slideUp: {
                     '0%': { opacity: '0', transform: 'translateY(10px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                float: {
+                  '0%, 100%': { transform: 'translateY(0)' },
+                  '50%': { transform: 'translateY(-10px)' },
                 }
             }
           }
@@ -204,7 +209,7 @@
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "pdfjs-dist": "https://aistudiocdn.com/pdfjs-dist@^5.4.449",
+    "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.530/build/pdf.min.mjs",
     "next/": "https://esm.sh/next@^16.0.8/"
   }
 }

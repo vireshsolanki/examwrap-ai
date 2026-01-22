@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle2, File } from 'lucide-react';
 import { extractTextFromPDF } from '../services/pdfService';
@@ -6,6 +7,9 @@ interface FileUploadProps {
   onUpload: (content: string) => void;
   isLoading: boolean;
 }
+
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -29,6 +33,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
         return;
     }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB for testing purposes.`);
+        return;
+    }
+
     setIsProcessing(true);
     setProgress(0);
     
@@ -40,7 +49,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             setPageStatus({ current, total });
         });
       } else {
-        // Text files are instant, but let's fake a small loader for UX consistency
         setProgress(50);
         content = await file.text();
         setProgress(100);
@@ -52,7 +60,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
         return;
       }
       
-      // Small delay to show 100% completion before transitioning
       setTimeout(() => {
           onUpload(content);
       }, 500);
@@ -86,7 +93,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
           Import Study Material
         </h1>
         <p className="text-text-secondary text-base max-w-lg mx-auto leading-relaxed">
-          Upload your syllabus, textbook, or notes. ExamWarp will extract the content and prepare your personalized exam environment.
+          Upload your syllabus, textbook, or notes. Limit: <span className="text-primary font-bold">{MAX_FILE_SIZE_MB}MB</span>.
         </p>
       </div>
 
@@ -170,7 +177,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             </div>
             <h4 className="text-sm font-medium text-text-primary">Deep Parsing</h4>
             <p className="text-xs text-text-secondary leading-relaxed">
-                Advanced extraction engine handles complex PDF layouts including multi-column text.
+                Advanced extraction engine handles complex PDF layouts efficiently.
             </p>
         </div>
         <div className="flex flex-col gap-2 p-4 rounded-lg hover:bg-surface/50 transition-colors">
@@ -179,16 +186,16 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             </div>
             <h4 className="text-sm font-medium text-text-primary">Context Aware</h4>
             <p className="text-xs text-text-secondary leading-relaxed">
-                Automatically detects the subject, exam type, and difficulty level from your content.
+                Automatically detects the subject and difficulty level from your content.
             </p>
         </div>
         <div className="flex flex-col gap-2 p-4 rounded-lg hover:bg-surface/50 transition-colors">
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-1">
                 <AlertCircle className="w-4 h-4 text-amber-500" />
             </div>
-            <h4 className="text-sm font-medium text-text-primary">Local Privacy</h4>
+            <h4 className="text-sm font-medium text-text-primary">Testing Limit</h4>
             <p className="text-xs text-text-secondary leading-relaxed">
-                Your documents are processed in your browser memory and are never stored on external servers.
+                Max 5MB per upload for experimental testing.
             </p>
         </div>
       </div>
