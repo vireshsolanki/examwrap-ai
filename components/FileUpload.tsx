@@ -1,6 +1,5 @@
-
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2, File } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen } from 'lucide-react';
 import { extractTextFromPDF } from '../services/pdfService';
 
 interface FileUploadProps {
@@ -8,7 +7,7 @@ interface FileUploadProps {
   isLoading: boolean;
 }
 
-const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
@@ -29,39 +28,39 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
 
   const processFile = async (file: File) => {
     if (file.type !== "application/pdf" && !file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
-        alert("Please upload a PDF, Text, or Markdown file.");
-        return;
+      alert("Please upload a PDF, Text, or Markdown file.");
+      return;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB for testing purposes.`);
-        return;
+      alert(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
+      return;
     }
 
     setIsProcessing(true);
     setProgress(0);
-    
+
     try {
       let content = "";
       if (file.type === "application/pdf") {
         content = await extractTextFromPDF(file, (percent, current, total) => {
-            setProgress(percent);
-            setPageStatus({ current, total });
+          setProgress(percent);
+          setPageStatus({ current, total });
         });
       } else {
         setProgress(50);
         content = await file.text();
         setProgress(100);
       }
-      
+
       if (content.length < 50) {
-        alert("The file appears to be empty or too short.");
+        alert("The file appears to be empty or too short. Please upload a detailed study material.");
         setIsProcessing(false);
         return;
       }
-      
+
       setTimeout(() => {
-          onUpload(content);
+        onUpload(content);
       }, 500);
 
     } catch (err: any) {
@@ -87,24 +86,27 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Import Study Material
+    <div className="max-w-4xl mx-auto mt-12 px-6 animate-fade-in pb-20">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-widest mb-6">
+          <BookOpen className="w-3.5 h-3.5" /> Study Material Upload
+        </div>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          Upload Your <span className="text-primary">Content</span>
         </h1>
-        <p className="text-text-secondary text-base max-w-lg mx-auto leading-relaxed">
-          Upload your syllabus, textbook, or notes. Limit: <span className="text-primary font-bold">{MAX_FILE_SIZE_MB}MB</span>.
+        <p className="text-text-secondary text-base font-medium max-w-lg mx-auto opacity-80 leading-relaxed">
+          Upload your syllabus, notes, or sample papers. We'll analyze them to help you prepare better.
         </p>
       </div>
 
-      <div 
+      <div
         className={`
-          relative group border-2 border-dashed rounded-xl transition-all duration-300 ease-out
-          flex flex-col items-center justify-center min-h-[360px] bg-surface/50
-          ${isProcessing ? "border-border cursor-default" : "cursor-pointer"}
-          ${dragActive 
-            ? "border-primary bg-primary/5 scale-[1.01] shadow-2xl shadow-primary/10" 
-            : "border-border hover:border-text-tertiary hover:bg-surface"
+          relative group glass-card transition-all duration-300 ease-out
+          flex flex-col items-center justify-center min-h-[380px] p-10 border-dashed
+          ${isProcessing ? "cursor-wait" : "cursor-pointer"}
+          ${dragActive
+            ? "border-primary bg-primary/5 scale-[1.01]"
+            : "border-white/10 hover:border-primary/30"
           }
         `}
         onDragEnter={!isProcessing ? handleDrag : undefined}
@@ -113,91 +115,82 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
         onDrop={!isProcessing ? handleDrop : undefined}
       >
         {!isProcessing && (
-            <input
-                type="file"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                id="file-upload"
-                accept=".pdf,.txt,.md"
-                onChange={handleChange}
-                disabled={isLoading || isProcessing}
-                aria-label="File Upload"
-            />
+          <input
+            type="file"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+            id="file-upload"
+            accept=".pdf,.txt,.md"
+            onChange={handleChange}
+            disabled={isLoading || isProcessing}
+            aria-label="File Upload"
+          />
         )}
-        
+
         {isProcessing ? (
-           <div className="w-full max-w-xs px-6 flex flex-col items-center animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-background rounded-2xl border border-border flex items-center justify-center mb-6 shadow-sm">
-                  <File className="w-8 h-8 text-primary animate-pulse" />
+          <div className="w-full max-w-xs flex flex-col items-center animate-fade-in">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 border border-primary/20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+
+            <div className="w-full space-y-3 mb-4">
+              <div className="flex justify-between text-xs font-bold text-primary uppercase tracking-wider">
+                <span>Reading File</span>
+                <span>{progress}%</span>
               </div>
-              
-              <div className="w-full space-y-2 mb-2">
-                <div className="flex justify-between text-xs font-medium text-text-primary uppercase tracking-wide">
-                    <span>Extracting Content</span>
-                    <span>{progress}%</span>
-                </div>
-                <div className="h-2 w-full bg-background rounded-full overflow-hidden border border-border">
-                    <div 
-                        className="h-full bg-primary transition-all duration-300 ease-out"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              
-              <p className="text-xs text-text-tertiary">
-                  {pageStatus.total > 0 
-                    ? `Processing page ${pageStatus.current} of ${pageStatus.total}`
-                    : "Initializing parser..."
-                  }
-              </p>
-           </div>
+            </div>
+
+            <p className="text-[11px] text-text-tertiary font-bold uppercase tracking-wider">
+              {pageStatus.total > 0
+                ? `Processing Page ${pageStatus.current} of ${pageStatus.total}`
+                : "Scanning content..."
+              }
+            </p>
+          </div>
         ) : (
-           <div className="flex flex-col items-center pointer-events-none z-10">
-              <div className={`
-                  w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-300
-                  ${dragActive ? 'bg-primary text-white scale-110' : 'bg-background border border-border text-text-secondary'}
+          <div className="flex flex-col items-center pointer-events-none z-10 text-center">
+            <div className={`
+                  w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300
+                  ${dragActive ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-white/5 border border-white/10 text-text-tertiary'}
               `}>
-                <Upload className="w-8 h-8" />
-              </div>
-              <p className="text-lg text-text-primary font-medium mb-2">
-                {dragActive ? "Drop file to upload" : "Click to upload or drag & drop"}
-              </p>
-              <div className="flex items-center gap-2 text-sm text-text-tertiary">
-                <span className="bg-background border border-border px-2 py-0.5 rounded text-xs font-mono">PDF</span>
-                <span className="bg-background border border-border px-2 py-0.5 rounded text-xs font-mono">TXT</span>
-                <span className="bg-background border border-border px-2 py-0.5 rounded text-xs font-mono">MD</span>
-              </div>
-           </div>
+              <Upload className="w-8 h-8" />
+            </div>
+            <p className="text-2xl font-bold text-white mb-2">
+              {dragActive ? "Drop to start" : "Select Study Material"}
+            </p>
+            <p className="text-sm text-text-tertiary font-medium mb-8">
+              Drag and drop your PDF, TXT or MD files here
+            </p>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">PDF</span>
+              <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">TXT</span>
+              <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">MD</span>
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="flex flex-col gap-2 p-4 rounded-lg hover:bg-surface/50 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-1">
-                <FileText className="w-4 h-4 text-emerald-500" />
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[
+          { icon: FileText, title: "Smart Analysis", desc: "We automatically identify key concepts from your text.", color: "text-blue-400" },
+          { icon: CheckCircle2, title: "Topic Mapping", desc: "Subjects are categorized into high and low yield topics.", color: "text-emerald-400" },
+          { icon: AlertCircle, title: "Easy Import", desc: "Support for all standard academic document formats.", color: "text-rose-400" }
+        ].map((feat, i) => (
+          <div key={i} className="flex flex-col items-start p-2">
+            <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-5 ${feat.color}`}>
+              <feat.icon className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-medium text-text-primary">Deep Parsing</h4>
-            <p className="text-xs text-text-secondary leading-relaxed">
-                Advanced extraction engine handles complex PDF layouts efficiently.
+            <h4 className="text-base font-bold text-white mb-2">{feat.title}</h4>
+            <p className="text-sm text-text-secondary leading-relaxed opacity-70">
+              {feat.desc}
             </p>
-        </div>
-        <div className="flex flex-col gap-2 p-4 rounded-lg hover:bg-surface/50 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-1">
-                <CheckCircle2 className="w-4 h-4 text-blue-500" />
-            </div>
-            <h4 className="text-sm font-medium text-text-primary">Context Aware</h4>
-            <p className="text-xs text-text-secondary leading-relaxed">
-                Automatically detects the subject and difficulty level from your content.
-            </p>
-        </div>
-        <div className="flex flex-col gap-2 p-4 rounded-lg hover:bg-surface/50 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-1">
-                <AlertCircle className="w-4 h-4 text-amber-500" />
-            </div>
-            <h4 className="text-sm font-medium text-text-primary">Testing Limit</h4>
-            <p className="text-xs text-text-secondary leading-relaxed">
-                Max 5MB per upload for experimental testing.
-            </p>
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,0 +1,218 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Difficulty {
+    Easy,
+    Medium,
+    Hard,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum QuestionType {
+    MCQ,
+    ShortAnswer,
+    LongAnswer,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ExamProbability {
+    High,
+    Medium,
+    Low,
+}
+
+/// Exam configuration matching TypeScript version
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExamConfig {
+    pub question_count: u32,
+    pub question_types: Vec<QuestionType>,
+    pub focus_topics: Vec<String>,
+    pub time_limit_minutes: u32,
+    pub time_limit_per_question_seconds: Option<u32>,
+}
+
+/// Question definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Question {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub question_type: QuestionType,
+    pub text: String,
+    pub options: Option<Vec<String>>,
+    pub correct_answer_index: Option<u32>,
+    pub model_answer: Option<String>,
+    pub explanation: String,
+    pub difficulty: Difficulty,
+    pub probability: ExamProbability,
+    pub topic_id: String,
+    pub topic_name: String,
+}
+
+/// User answer for a question
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAnswer {
+    pub question_id: String,
+    pub selected_option_index: Option<u32>,
+    pub text_answer: Option<String>,
+    pub time_spent_seconds: f64,
+}
+
+/// Exam result with analytics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExamResult {
+    pub score: f64,
+    pub total_questions: u32,
+    pub accuracy: f64,
+    pub weak_topics: Vec<String>,
+    pub strong_topics: Vec<String>,
+    pub feedback: String,
+    pub time_management_analysis: String,
+    pub concept_gaps: Vec<String>,
+    pub careless_mistakes: Vec<String>,
+    pub xp_earned: u32,
+    pub recommended_duration: u32,
+}
+
+/// Single day in revision plan
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RevisionDay {
+    pub day: u32,
+    pub focus: String,
+    pub tasks: Vec<String>,
+}
+
+/// Full revision plan
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RevisionPlan {
+    pub schedule: Vec<RevisionDay>,
+    pub general_advice: String,
+}
+
+/// Combined response for performance analysis
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyzePerformanceResponse {
+    pub result: ExamResult,
+    pub plan: RevisionPlan,
+}
+
+/// Request body for analyze-performance endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnalyzePerformanceRequest {
+    pub questions: Vec<Question>,
+    pub answers: Vec<UserAnswer>,
+    pub context: SubjectContext,
+}
+
+/// Request body for generate-exam endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateExamRequest {
+    pub content: String,
+    pub topics: Vec<Topic>,
+    pub config: ExamConfig,
+    pub context: SubjectContext,
+}
+
+/// Subject analysis result from Gemini
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubjectAnalysis {
+    pub subject_name: String,
+    pub exam_type: String,
+    pub confidence: f64,
+    pub summary: String,
+}
+
+/// Subtopic definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subtopic {
+    pub name: String,
+}
+
+/// Main Topic definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Topic {
+    pub id: String,
+    pub name: String,
+    pub subtopics: Vec<Subtopic>,
+}
+
+/// Request body for generate-syllabus endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateSyllabusRequest {
+    pub content: String,
+    pub context: SubjectContext,
+}
+
+/// Subject context for further operations
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubjectContext {
+    pub subject_name: String,
+    pub exam_type: String,
+}
+
+/// Request body for regenerate-plan endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegeneratePlanRequest {
+    pub weak_topics: Vec<String>,
+    pub concept_gaps: Vec<String>,
+    pub duration_days: u32,
+    pub context: SubjectContext,
+}
+
+/// Request body for generate-summary endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateSummaryRequest {
+    pub content: String,
+    pub context: SubjectContext,
+}
+
+/// Request body for format-notes endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormatNotesRequest {
+    pub rough_notes: String,
+}
+
+/// Request body for identify-subject endpoint
+#[derive(Debug, Deserialize)]
+pub struct IdentifySubjectRequest {
+    pub content: String,
+}
+
+/// Generic API response wrapper
+#[derive(Debug, Serialize)]
+pub struct ApiResponse<T> {
+    pub success: bool,
+    pub data: Option<T>,
+    pub error: Option<String>,
+}
+
+impl<T> ApiResponse<T> {
+    pub fn success(data: T) -> Self {
+        ApiResponse {
+            success: true,
+            data: Some(data),
+            error: None,
+        }
+    }
+
+    pub fn error(message: String) -> Self {
+        ApiResponse {
+            success: false,
+            data: None,
+            error: Some(message),
+        }
+    }
+}

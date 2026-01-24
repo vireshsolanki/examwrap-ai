@@ -16,53 +16,85 @@ const SummaryView: React.FC<SummaryViewProps> = ({ summaryMarkdown, onBack }) =>
   return (
     <div className="max-w-4xl mx-auto mt-8 px-6 pb-20 fade-in">
       <div className="flex items-center justify-between mb-8 no-print">
-        <button 
-            onClick={onBack}
-            className="flex items-center gap-2 text-text-secondary hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl transition-all active:scale-95 duration-200 text-sm font-medium"
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-text-secondary hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl transition-all active:scale-95 duration-200 text-sm font-medium"
         >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
         </button>
         <div className="flex items-center gap-3">
-            <button 
-                onClick={handleDownload}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-slate-200 rounded-xl font-bold shadow-lg transition-all active:scale-95 duration-200" 
-                title="Download Summary PDF"
-            >
-                <Download className="w-4 h-4" />
-                <span>Download PDF</span>
-            </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-slate-200 rounded-xl font-bold shadow-lg transition-all active:scale-95 duration-200"
+            title="Download Summary PDF"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download PDF</span>
+          </button>
         </div>
       </div>
 
-      <div id="printable-summary" className="glass-panel rounded-2xl p-8 md:p-16 shadow-2xl relative overflow-hidden">
+      <div id="printable-summary" className="printable-summary-container rounded-3xl p-8 md:p-16 shadow-2xl relative overflow-hidden bg-white text-black border border-gray-100">
+        {/* Decorative Element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/5 rounded-full -mr-32 -mt-32 print:hidden"></div>
+
         {/* Print Only Header */}
-        <div className="hidden print:block text-center mb-8 border-b-2 border-black pb-4">
-             <h1 className="text-3xl font-bold text-black">ExamWarp AI Summary</h1>
-             <p className="text-sm text-gray-600">Generated Study Material</p>
+        <div className="hidden print:block text-center mb-12 border-b-4 border-double border-violet-200 pb-8">
+          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-violet-400 mb-2">Study Intelligence Report</div>
+          <h1 className="text-4xl font-extrabold text-black uppercase tracking-tight italic">ExamWarp Brief</h1>
+          <div className="flex justify-center gap-4 mt-4 text-[10px] font-mono text-gray-400">
+            <span>ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
+            <span>•</span>
+            <span>TYPE: CONCEPT SUMMARY</span>
+            <span>•</span>
+            <span>DATE: {new Date().toLocaleDateString()}</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 mb-10 pb-8 border-b border-white/10 no-print">
-            <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20">
-                <Book className="w-7 h-7 text-white" />
-            </div>
-            <div>
-                <h1 className="text-3xl font-bold text-white mb-1">Smart Summary</h1>
-                <p className="text-text-secondary text-base">AI-generated comprehensive review of your material.</p>
-            </div>
+        <div className="flex items-center gap-5 mb-12 pb-8 border-b border-gray-100 no-print">
+          <div className="w-16 h-16 bg-gradient-to-tr from-violet-600 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-xl shadow-violet-500/30 rotate-3">
+            <Book className="w-8 h-8 text-white -rotate-3" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 mb-1 tracking-tight">Smart Summary</h1>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-wider">Neural Synthesis of Study Material</p>
+          </div>
         </div>
 
-        <article className="prose prose-invert prose-lg max-w-none prose-headings:text-white prose-p:text-slate-300 prose-strong:text-violet-200 prose-li:text-slate-300 prose-blockquote:border-l-violet-500 prose-blockquote:bg-white/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
-            <div className="whitespace-pre-wrap font-sans leading-relaxed">
-                {summaryMarkdown}
-            </div>
+        <article className="prose prose-slate max-w-none 
+            prose-headings:text-black prose-headings:font-black prose-headings:tracking-tight
+            prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+            prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg
+            prose-strong:text-violet-700 prose-strong:font-bold
+            prose-ul:list-disc prose-li:text-gray-700
+            prose-blockquote:border-l-4 prose-blockquote:border-violet-500 prose-blockquote:bg-violet-50 prose-blockquote:italic
+            print:prose-p:text-sm print:prose-li:text-sm">
+          <div className="whitespace-pre-wrap font-sans leading-relaxed">
+            {summaryMarkdown}
+          </div>
         </article>
 
         {/* Print Footer */}
-        <div className="hidden print:block mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
-            Generated by ExamWarp AI
+        <div className="hidden print:block mt-16 pt-6 border-t border-gray-100 text-center text-[8px] text-gray-300 uppercase tracking-[0.3em]">
+          This document was autonomously generated by ExamWarp AI • End of Report
         </div>
       </div>
+
+      <style>{`
+        @media print {
+            body { background: white !important; -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .printable-summary-container { 
+                border: none !important; 
+                box-shadow: none !important; 
+                padding: 0 !important;
+                background: white !important;
+            }
+            .prose { color: black !important; max-width: none !important; }
+            @page { margin: 2.5cm; }
+        }
+      `}</style>
     </div>
   );
 };

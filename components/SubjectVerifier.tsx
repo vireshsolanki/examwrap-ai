@@ -22,59 +22,63 @@ const SubjectVerifier: React.FC<SubjectVerifierProps> = ({ initialAnalysis, onCo
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-16 px-6 fade-in">
-      <div className="bg-surface border border-border rounded-xl p-8 shadow-2xl">
-        <div className="mb-8 text-center">
-            <h1 className="text-2xl font-semibold text-text-primary mb-2">Verify Exam Context</h1>
-            <p className="text-text-secondary text-sm">
-                We analyzed your document. Please confirm the exam details below to tailor the question bank.
-            </p>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 fade-in">
+      <div className="max-w-lg w-full bg-surface border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+        <div className="mb-8 text-center relative z-10">
+          <h1 className="text-xl font-bold text-white mb-2">Verify Exam Details</h1>
+          <p className="text-text-secondary text-xs">
+            Confirm your document context to tailor the question bank.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-                <div className="bg-background/50 p-4 rounded-lg border border-border group focus-within:border-primary transition-colors">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-2 flex items-center gap-2">
-                        <BookOpen className="w-3.5 h-3.5" />
-                        Subject / Course Name
-                    </label>
-                    <input 
-                        type="text"
-                        value={subjectName}
-                        onChange={(e) => setSubjectName(e.target.value)}
-                        className="w-full bg-transparent border-none p-0 text-lg font-medium text-text-primary focus:ring-0 placeholder-text-tertiary"
-                        placeholder="e.g. Advanced Calculus"
-                    />
-                </div>
-
-                <div className="bg-background/50 p-4 rounded-lg border border-border group focus-within:border-primary transition-colors">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-2 flex items-center gap-2">
-                        <GraduationCap className="w-3.5 h-3.5" />
-                        Exam Goal / Target
-                    </label>
-                    <input 
-                        type="text"
-                        value={examType}
-                        onChange={(e) => setExamType(e.target.value)}
-                        className="w-full bg-transparent border-none p-0 text-lg font-medium text-text-primary focus:ring-0 placeholder-text-tertiary"
-                        placeholder="e.g. Final Semester Exam"
-                    />
-                </div>
+        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+          <div className="space-y-4">
+            <div className="bg-black/20 p-4 rounded-xl border border-white/5 group focus-within:border-primary/50 transition-colors">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary mb-1.5 flex items-center gap-2">
+                <BookOpen className="w-3.5 h-3.5" />
+                Subject / Course
+              </label>
+              <input
+                type="text"
+                value={subjectName}
+                onChange={(e) => setSubjectName(e.target.value)}
+                className="w-full bg-transparent border-none p-0 text-sm font-bold text-white focus:ring-0 placeholder-white/20"
+                placeholder="e.g. Advanced Calculus"
+              />
             </div>
 
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                <p className="text-xs text-primary/80 leading-relaxed">
-                    <strong>AI Insight:</strong> {initialAnalysis.summary}
-                </p>
+            <div className="bg-black/20 p-4 rounded-xl border border-white/5 group focus-within:border-primary/50 transition-colors">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary mb-1.5 flex items-center gap-2">
+                <GraduationCap className="w-3.5 h-3.5" />
+                Target Exam
+              </label>
+              <input
+                type="text"
+                value={examType}
+                onChange={(e) => setExamType(e.target.value)}
+                className="w-full bg-transparent border-none p-0 text-sm font-bold text-white focus:ring-0 placeholder-white/20"
+                placeholder="e.g. Final Semester"
+              />
             </div>
+          </div>
 
-            <button
-                type="submit"
-                className="w-full py-4 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold text-base rounded-lg transition-all active:scale-[0.98] duration-200 flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
-            >
-                Confirm & Generate Syllabus
-                <ArrowRight className="w-4 h-4" />
-            </button>
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+            <p className="text-[10px] text-primary/80 leading-relaxed font-medium">
+              <strong className="text-primary block mb-1 uppercase tracking-wider">AI Insight</strong>
+              {initialAnalysis.summary}
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3.5 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] duration-200 flex items-center justify-center gap-2 shadow-lg shadow-primary/25"
+          >
+            Confirm & Generate
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </form>
       </div>
     </div>

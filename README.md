@@ -1,94 +1,81 @@
-# ExamWarp AI 🚀
+# ExamWrapAI 🚀
 
-**ExamWarp AI** is an advanced, enterprise-grade exam simulator powered by Google's Gemini 2.5 Flash. It transforms static PDF study materials into adaptive, interactive mock exams with real-time analytics, personalized revision plans, and gamified progress tracking.
+> Your Personal AI Study Architect for creating, taking, and analyzing exams.
 
-## ✨ Key Features
+## 🌟 Overview
 
-- **📄 Universal PDF Parsing**: Drag & drop any textbook, notes, or syllabus (runs locally in-browser).
-- **🧠 Context-Aware Syllabus**: AI automatically extracts topics, subtopics, and detects exam difficulty.
-- **📝 Adaptive Question Bank**: Generates MCQs, Short Answers, and Long Form questions with detailed explanations.
-- **⏱️ Professional Exam Interface**:
-  - Split-screen layout (Text vs. Input).
-  - Configurable Time Limits (Total & Per-Question).
-  - Question Palette & Review Flags.
-- **📊 Deep Analytics**:
-  - Identifies "Concept Gaps" vs. "Careless Mistakes".
-  - Generates a 7-Day Interactive Revision Plan.
-  - Smart Summary Generator.
-- **💾 Local Persistence**: Saves exam history, XP, and user profile to LocalStorage (Privacy first).
+ExamWrapAI is a full-stack application that transforms study materials (PDFs, Notes) into interactive exams. It uses **Google Gemini** for intelligence and provides detailed analytics on your performance.
 
-## 🛠️ Prerequisites
-
-- **Node.js** (v18 or higher)
-- **npm** or **yarn**
-- A **Google Gemini API Key** (Get it [here](https://aistudio.google.com/app/apikey))
-
-## 🚀 Local Setup Guide
-
-Follow these steps to run the application on your local machine:
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/examwarp-ai.git
-cd examwarp-ai
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-# or
-yarn install
-```
-
-### 3. Configure Environment Variables
-
-1.  Rename `.env.example` to `.env`.
-2.  Open `.env` and paste your Google API Key.
-
-```bash
-cp .env.example .env
-```
-
-**Inside `.env`:**
-
-```env
-API_KEY=AIzaSy...YourKeyHere
-```
-
-> **Note:** The application uses `process.env.API_KEY`. Ensure your bundler (Vite/Webpack) is configured to expose this, or prefix it (e.g., `VITE_API_KEY`) and update `services/geminiService.ts` accordingly if using a specific framework starter.
-
-### 4. Run the Application
-
-```bash
-npm start
-# or
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## 🏗️ Architecture
-
-- **Frontend**: React 19, TypeScript, Tailwind CSS
-- **AI Engine**: Google GenAI SDK (`gemini-2.5-flash`)
-- **PDF Engine**: PDF.js (Client-side extraction)
-- **Icons**: Lucide React
-- **Charts**: Recharts
-
-## 🔒 Privacy Note
-
-This application processes PDF files **entirely in the browser** using Web Workers. Your documents are **not** uploaded to any server. Only text snippets are sent to the Gemini API for question generation.
-
-## 🤝 Contributing
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+### Tech Stack
+- **Frontend**: React + Vite + TailwindCSS + Lucide Icons
+- **Backend**: Rust + Axum (High performance, Memory efficient)
+- **AI**: Google Gemini API via `reqwest`
 
 ---
 
-Built with ❤️ for students and lifelong learners.
+## 🛠️ Quick Start (Docker - Recommended)
+
+The easiest way to run the entire stack.
+
+1. **Prerequisites**: Docker & Docker Compose installed.
+2. **Setup Env**:
+   Ensure you have a `.env` file in `rust-backend/` with your API Key:
+   ```bash
+   GOOGLE_API_KEY=your_key_here
+   GOOGLE_MODEL_NAME=gemini-1.5-flash
+   SERVER_PORT=8080
+   ALLOWED_ORIGINS=http://localhost:3000
+   ```
+3. **Run**:
+   ```bash
+   docker-compose up --build
+   ```
+4. **Access**:
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend Health: [http://localhost:8080/api/health](http://localhost:8080/api/health)
+
+---
+
+## 🏃 Local Development (No Docker)
+
+If you want to run services natively on your machine:
+
+1. **Install Dependencies**:
+   - Rust toolchain (`rustup`)
+   - Node.js 18+
+
+2. **Run Script**:
+   We've provided a helper script that cleans ports and launches both services:
+   ```bash
+   ./run_local.sh
+   ```
+
+---
+
+## 📂 Project Structure
+
+```
+ExamWrapAI/
+├── src/                # React Frontend
+├── rust-backend/       # Rust Backend API
+│   ├── src/
+│   │   ├── routes/     # API Endpoints
+│   │   ├── services/   # Gemini Integration
+│   │   └── models/     # Data Types
+│   └── Cargo.toml
+├── Dockerfile          # Frontend Container
+├── docker-compose.yml  # Orchestration
+└── run_local.sh        # Dev Script
+```
+
+## 🔒 Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_API_KEY` | Required for AI features |
+| `GOOGLE_MODEL_NAME` | e.g. `gemini-1.5-flash` |
+| `SERVER_PORT` | Backend port (default 8080) |
+| `ALLOWED_ORIGINS` | CORS allowed origin |
+
+## 📝 License
+MIT

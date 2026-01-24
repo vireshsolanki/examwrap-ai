@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: 
+      context: ./rust-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./rust-backend/.env:/app/.env
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always
