@@ -1,7 +1,11 @@
 # Build Stage
-FROM rust:1.80-slim-bookworm as builder
+FROM rust:1-slim-bookworm as builder
 
 WORKDIR /app
+
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 
 # Copy manifest and build dependencies to cache
 COPY Cargo.toml .
@@ -17,12 +21,10 @@ RUN touch src/main.rs
 RUN cargo build --release
 
 # Runtime Stage
-FROM debian:bookworm-slim
+# Runtime Stage
+FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
-
-# Install runtime dependencies (OpenSSL is crucial)
-RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/examwrap-backend .
 COPY --from=builder /app/.env .

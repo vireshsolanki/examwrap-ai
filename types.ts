@@ -146,3 +146,10 @@ export interface UserProfile {
   history: ExamHistoryItem[];
   hasSeenTour?: boolean;
 }
+
+export interface NoteRecord {
+  id: string;
+  date: string;
+  title: string;
+  content: string;
+}

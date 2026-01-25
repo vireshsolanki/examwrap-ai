@@ -232,7 +232,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         </button>
                                     </div>
                                     <h3 className="text-lg font-bold text-white mb-1 truncate">{item.subjectName}</h3>
-                                    <p className="text-[10px] text-text-tertiary font-bold uppercase">{new Date(item.date).toLocaleDateString()}</p>
+                                    <p className="text-[10px] text-text-tertiary font-bold uppercase">{
+                                        (() => {
+                                            const d = new Date(item.date);
+                                            return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+                                        })()
+                                    }</p>
                                 </div>
 
                                 <button
@@ -269,7 +274,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 {user.history.map((item) => (
                                     <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="p-6 text-xs text-text-tertiary">
-                                            {new Date(item.date).toLocaleDateString()}
+                                            {(() => {
+                                                const d = new Date(item.date);
+                                                return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+                                            })()}
                                         </td>
                                         <td className="p-6 text-sm text-white font-bold">
                                             {item.subjectName}
@@ -285,14 +293,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         <td className="p-6 text-right pr-8">
                                             <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                                                 {[
-                                                    { icon: Calendar, onClick: () => onViewPlan && onViewPlan(item.id), color: 'hover:text-primary' },
-                                                    { icon: BarChart, onClick: () => onViewResult && onViewResult(item.id), color: 'hover:text-secondary' },
-                                                    { icon: Eye, onClick: () => onReviewExam && onReviewExam(item.id), color: 'hover:text-white' },
-                                                    { icon: RotateCcw, onClick: () => onRetakeExam && onRetakeExam(item.id), color: 'hover:text-emerald-400' }
+                                                    { icon: Calendar, onClick: () => onViewPlan && onViewPlan(item.id), color: 'hover:text-primary', title: "View Revision Plan" },
+                                                    { icon: BarChart, onClick: () => onViewResult && onViewResult(item.id), color: 'hover:text-secondary', title: "View Analysis" },
+                                                    { icon: Eye, onClick: () => onReviewExam && onReviewExam(item.id), color: 'hover:text-white', title: "Review Questions" },
+                                                    { icon: RotateCcw, onClick: () => onRetakeExam && onRetakeExam(item.id), color: 'hover:text-emerald-400', title: "Retake Exam" }
                                                 ].map((act, i) => (
                                                     <button
                                                         key={i}
                                                         onClick={act.onClick}
+                                                        title={act.title}
                                                         className={`p-2 glass-card rounded-lg transition-all active:scale-90 ${act.color}`}
                                                     >
                                                         <act.icon className="w-3.5 h-3.5" />

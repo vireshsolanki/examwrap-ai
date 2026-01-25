@@ -77,5 +77,18 @@ ExamWrapAI/
 | `SERVER_PORT` | Backend port (default 8080) |
 | `ALLOWED_ORIGINS` | CORS allowed origin |
 
-## 📝 License
+## �️ Data & Privacy
+**No Database Required!**
+ExamWrapAI is designed to be stateless and privacy-focused.
+- No external database is used to store your exams or notes.
+- Your progress is saved locally in your browser's **Local Storage**.
+- Clearing your browser cache will reset your progress.
+
+## 🧠 Evaluation Engine
+How do we grade your answers without a vector database?
+1. **Context-Aware Prompting**: We send the original question, your answer, and the initial context back to the Gemini LLM.
+2. **AI Grading**: The AI acts as the evaluator, comparing your response against the implicit ground truth in the source material.
+3. **Real-time Feedback**: This "Stateless Evaluation" allows us to give instant feedback without managing complex vector embeddings.
+
+## �📝 License
 MIT

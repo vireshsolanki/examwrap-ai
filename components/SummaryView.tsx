@@ -7,10 +7,43 @@ interface SummaryViewProps {
 }
 
 const SummaryView: React.FC<SummaryViewProps> = ({ summaryMarkdown, onBack }) => {
+  const [fileName, setFileName] = React.useState(`ExamWarp_Brief_${new Date().toISOString().split('T')[0]}`);
+
   const handleDownload = () => {
-    // Uses browser native print to save as PDF. 
-    // The @media print styles in index.html ensure only the summary is visible.
+    // Update document title temporarily for print filename
+    const oldTitle = document.title;
+    document.title = fileName;
     window.print();
+    document.title = oldTitle;
+  };
+
+  // Reuse Simple Renderer logic or similar for consistent look
+  const SimpleRenderer = ({ content }: { content: string }) => {
+    if (!content) return null;
+    return (
+      <div>
+        {content.split('\n').map((line, idx) => {
+          if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-black text-black mb-6 mt-8 border-b pb-4">{line.replace('# ', '')}</h1>;
+          if (line.startsWith('## ')) return <h2 key={idx} className="text-2xl font-bold text-gray-900 mb-4 mt-8">{line.replace('## ', '')}</h2>;
+          if (line.startsWith('### ')) return <h3 key={idx} className="text-xl font-bold text-gray-800 mb-3 mt-6">{line.replace('### ', '')}</h3>;
+          if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+            const text = line.replace(/^[\*\-]\s/, '');
+            const parts = text.split(/(\*\*.*?\*\*)/g);
+            return <li key={idx} className="ml-6 list-disc text-gray-700 mb-2 pl-2 marker:text-violet-500">{
+              parts.map((part, pIdx) => part.startsWith('**') ? <strong key={pIdx} className="text-violet-700 font-bold">{part.slice(2, -2)}</strong> : part)
+            }</li>
+          }
+          if (line.trim() === '---') return <hr key={idx} className="my-8 border-gray-200" />;
+          if (line.trim().length > 0) {
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            return <p key={idx} className="mb-4 text-gray-700 leading-relaxed text-lg">{
+              parts.map((part, pIdx) => part.startsWith('**') ? <strong key={pIdx} className="text-violet-700 font-bold">{part.slice(2, -2)}</strong> : part)
+            }</p>
+          }
+          return <div key={idx} className="h-4"></div>;
+        })}
+      </div>
+    );
   };
 
   return (
@@ -24,6 +57,13 @@ const SummaryView: React.FC<SummaryViewProps> = ({ summaryMarkdown, onBack }) =>
           Back to Dashboard
         </button>
         <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary w-64"
+            placeholder="Filename..."
+          />
           <button
             onClick={handleDownload}
             className="flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-slate-200 rounded-xl font-bold shadow-lg transition-all active:scale-95 duration-200"
@@ -71,7 +111,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({ summaryMarkdown, onBack }) =>
             prose-blockquote:border-l-4 prose-blockquote:border-violet-500 prose-blockquote:bg-violet-50 prose-blockquote:italic
             print:prose-p:text-sm print:prose-li:text-sm">
           <div className="whitespace-pre-wrap font-sans leading-relaxed">
-            {summaryMarkdown}
+            <SimpleRenderer content={summaryMarkdown} />
           </div>
         </article>
 

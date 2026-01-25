@@ -17,7 +17,7 @@ import {
 import * as GeminiService from './services/geminiService';
 import * as StorageService from './services/storageService';
 import LoadingScreen from './components/LoadingScreen';
-import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight, Cpu } from 'lucide-react';
+import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight, Cpu, ArrowLeft } from 'lucide-react';
 
 // Lazy Load Components
 const FileUpload = React.lazy(() => import('./components/FileUpload'));
@@ -427,12 +427,23 @@ const App: React.FC = () => {
 
             <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20 no-print">
                 <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-                    <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
-                            <Cpu className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-base tracking-tight text-white leading-none uppercase">ExamWarp</span>
+                    <div className="flex items-center gap-4">
+                        {view !== AppView.DASHBOARD && view !== AppView.ONBOARDING && (
+                            <button
+                                onClick={handleNavigateToDashboard}
+                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white transition-all border border-white/5 hover:border-white/20"
+                                title="Back to Dashboard"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
+                                <Cpu className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-bold text-base tracking-tight text-white leading-none uppercase">ExamWarp</span>
+                            </div>
                         </div>
                     </div>
 
@@ -472,8 +483,8 @@ const App: React.FC = () => {
                         onClick={() => setIsMenuOpen(false)}
                     />
 
-                    <div className="relative w-full max-w-md glass-card h-full border-l border-white/5 animate-in slide-in-from-right duration-500 flex flex-col shadow-2xl">
-                        <div className="p-10 border-b border-white/5 flex items-center justify-between">
+                    <div className="relative w-full max-w-xs glass-card h-full border-l border-white/5 animate-in slide-in-from-right duration-500 flex flex-col shadow-2xl">
+                        <div className="p-6 border-b border-white/5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></div>
                                 <span className="font-bold text-xs text-white uppercase tracking-[0.2em] opacity-80">Navigation Menu</span>
@@ -483,7 +494,7 @@ const App: React.FC = () => {
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-10 space-y-12">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
                             {userProfile && (
                                 <div className="glass-card rounded-3xl p-8 relative overflow-hidden group border-primary/20">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
@@ -543,7 +554,7 @@ const App: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-10 border-t border-white/5 bg-white/[0.01]">
+                        <div className="p-6 border-t border-white/5 bg-white/[0.01]">
                             {confirmedContext ? (
                                 <button onClick={() => handleEndSession(true)} className="w-full flex items-center justify-center gap-4 p-5 rounded-2xl border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all active:scale-95 font-bold uppercase tracking-widest text-xs">
                                     <LogOut className="w-4 h-4" />

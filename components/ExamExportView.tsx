@@ -10,8 +10,13 @@ interface ExamExportViewProps {
 }
 
 const ExamExportView: React.FC<ExamExportViewProps> = ({ questions, onBack, subjectName }) => {
+    const [fileName, setFileName] = React.useState(`${subjectName.replace(/\s+/g, '_')}_Official_Assessment`);
+
     const handlePrint = () => {
+        const oldTitle = document.title;
+        document.title = fileName;
         window.print();
+        document.title = oldTitle;
     };
 
     return (
@@ -24,13 +29,22 @@ const ExamExportView: React.FC<ExamExportViewProps> = ({ questions, onBack, subj
                     <ArrowLeft className="w-4 h-4" />
                     Back to Results
                 </button>
-                <button
-                    onClick={handlePrint}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white hover:bg-primaryHover rounded-xl font-bold shadow-lg transition-all active:scale-95"
-                >
-                    <Printer className="w-4 h-4" />
-                    Print / Save PDF
-                </button>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="text"
+                        value={fileName}
+                        onChange={(e) => setFileName(e.target.value)}
+                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary w-64"
+                        placeholder="Filename..."
+                    />
+                    <button
+                        onClick={handlePrint}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white hover:bg-primaryHover rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                    >
+                        <Printer className="w-4 h-4" />
+                        Print / Save PDF
+                    </button>
+                </div>
             </div>
 
             <div id="printable-exam" className="printable-container rounded-2xl p-8 md:p-14 shadow-2xl bg-white text-black relative border border-gray-200">

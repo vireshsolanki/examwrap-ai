@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Question, UserAnswer, QuestionType, ExamMode } from '../types';
-import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle } from 'lucide-react';
+import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 
 const ExamTimer = memo(({
     minutes,
@@ -10,20 +10,61 @@ const ExamTimer = memo(({
     onTimeUp: () => void
 }) => {
     const [timeLeft, setTimeLeft] = useState(minutes * 60);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+
+    // Audio Context Ref
+    const audioCtxRef = React.useRef<AudioContext | null>(null);
+
+    const playTick = useCallback(() => {
+        if (!soundEnabled) return;
+        try {
+            if (!audioCtxRef.current) {
+                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+            if (audioCtxRef.current.state === 'suspended') {
+                audioCtxRef.current.resume();
+            }
+            const ctx = audioCtxRef.current;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            // Woodblock-like tick
+            osc.frequency.setValueAtTime(1000, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.05);
+        } catch (e) {
+            console.error("Audio play failed", e);
+        }
+    }, [soundEnabled]);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setTimeLeft(prev => {
-                if (prev <= 1) {
+                const newValue = prev - 1;
+                // Play tick if last 2 minutes (120 seconds) and not finished
+                if (newValue <= 120 && newValue > 0 && soundEnabled) {
+                    playTick();
+                }
+
+                if (newValue <= 0) {
                     clearInterval(interval);
                     onTimeUp();
                     return 0;
                 }
-                return prev - 1;
+                return newValue;
             });
         }, 1000);
-        return () => clearInterval(interval);
-    }, [minutes, onTimeUp]);
+        return () => {
+            clearInterval(interval);
+            if (audioCtxRef.current) audioCtxRef.current.close();
+        };
+    }, [minutes, onTimeUp, playTick, soundEnabled]);
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -40,6 +81,15 @@ const ExamTimer = memo(({
         `}>
             <Clock className="w-4 h-4" />
             <span className="font-mono text-lg font-bold tracking-widest">{formatTime(timeLeft)}</span>
+            {timeLeft <= 120 && (
+                <button
+                    onClick={() => setSoundEnabled(!soundEnabled)}
+                    className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                    title={soundEnabled ? "Mute Ticking" : "Enable Ticking"}
+                >
+                    {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3 opacity-50" />}
+                </button>
+            )}
         </div>
     );
 });
