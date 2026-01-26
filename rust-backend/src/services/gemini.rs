@@ -4,6 +4,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use crate::config::Config;
 use crate::models::{SubjectAnalysis, Topic, Question, ExamConfig, SubjectContext, QuestionType, Difficulty, ExamProbability, ExamPersona};
+use crate::config::exam_patterns::ExamPattern;
 
 /// Gemini API client
 #[derive(Clone)]
@@ -78,6 +79,15 @@ struct RawQuestion {
     pub probability: ExamProbability,
     pub topic_name: String,
     pub source_citation: Option<String>,
+    // Enhanced metadata
+    pub page_number: Option<u32>,
+    pub concept_tag: Option<String>,
+    pub subtopic_name: Option<String>,
+    // Exam-specific fields
+    pub numerical_answer: Option<f64>,
+    pub correct_answer_indices: Option<Vec<u32>>,
+    pub assertion_statement: Option<String>,
+    pub reasoning_statement: Option<String>,
 }
 
 impl GeminiService {
@@ -278,20 +288,30 @@ Rough Notes Input:
     ) -> Result<crate::models::RevisionPlan, String> {
         let prompt = format!(
             r#"You are an expert study planner for {}.
-Create a detailed **{}-Day Revision Schedule**.
+Create a detailed **EXACTLY {}-Day Revision Schedule**.
+
+CRITICAL REQUIREMENT: The schedule MUST have EXACTLY {} days. No more, no less.
 
 Focus Areas: {}
 Specific Gaps: {}
 
 Requirements:
-1. Spread the workload evenly over {} days.
-2. If the duration is short, prioritize high-impact weak topics.
-3. If the duration is long, include review days and deep dives.
-4. Provide specific, actionable tasks (e.g., "Review formula for X", "Practice 5 problems on Y")."#,
+1. Generate EXACTLY {} days in the schedule array (day 1 through day {}).
+2. Spread the workload evenly over these {} days.
+3. If the duration is short (1-3 days), prioritize only the most critical weak topics.
+4. If the duration is medium (4-7 days), include all weak topics with practice.
+5. If the duration is long (8+ days), include review days and deep dives.
+6. Provide specific, actionable tasks (e.g., "Review formula for X", "Practice 5 problems on Y").
+
+VERIFY: Your schedule array length MUST equal {}."#,
             context.subject_name,
+            duration_days,
             duration_days,
             weak_topics.join(", "),
             concept_gaps.join(", "),
+            duration_days,
+            duration_days,
+            duration_days,
             duration_days
         );
 
@@ -504,11 +524,35 @@ Material (first 25k chars):
         let type_requests_str = type_requests.join(", ");
         let persona_instr = Self::get_persona_prompt(&context.persona);
 
+        // Get exam-specific instructions if available
+        let exam_specific_instr = if let (Some(exam_type), Some(study_level)) = (&context.user_exam_type, &context.study_level) {
+            let pattern = ExamPattern::get_pattern(exam_type);
+            let level_instr = ExamPattern::get_study_level_instruction(study_level);
+            format!(
+                "\n\nEXAM-SPECIFIC CONTEXT:\n\
+                Exam: {}\n\
+                Marking Scheme: +{} for correct, {} for incorrect\n\
+                Difficulty Distribution: {}% Easy, {}% Medium, {}% Hard\n\
+                Study Level: {}\n\
+                Special Instructions: {}",
+                pattern.name,
+                pattern.marking_scheme.correct,
+                pattern.marking_scheme.incorrect,
+                pattern.difficulty_distribution.easy_percent,
+                pattern.difficulty_distribution.medium_percent,
+                pattern.difficulty_distribution.hard_percent,
+                level_instr,
+                pattern.special_instructions
+            )
+        } else {
+            String::new()
+        };
+
         let prompt = format!(
             r#"{}.
 Role: Expert Exam Creator for {} ({}).
 Context: Creating a high-quality practice assessment.
-Task: Generate exactly {} questions based on the content provided.
+Task: Generate exactly {} questions based on the content provided.{}
 
 PRIORITY RULE: 
 - The source text may contain regions tagged with "[USER HIGHLIGHTS: ...]". 
@@ -516,13 +560,18 @@ PRIORITY RULE:
 - You MUST prioritize generating questions from these highlighted sections to ensure assessment accuracy and user relevance.
 - Minimize speculation on background text; focus on the curated high-yield data.
 
+ENHANCED METADATA REQUIREMENTS:
+1. Page Number: If you can identify which page the concept appears on (look for "Page X" markers), include it as "pageNumber"
+2. Concept Tag: Identify the specific concept being tested (e.g., "Newton's Second Law", "Photosynthesis", "Quadratic Equations")
+3. Subtopic: If applicable, provide a more granular subtopic name
+
 Requirements:
 1. Question Types: Only generate [{}].
 2. Probability: Assign 'High', 'Medium', or 'Low' probability (how likely this concept is to appear in {}).
 3. Explanation: 
    - For MCQs: Provide a detailed explanation of the correct answer AND explain why each distractor is incorrect.
    - For Text: Provide the key marking points.
-4. Difficulty: Adaptive mix.
+4. Difficulty: Follow the exam-specific distribution if provided above.
 5. Grounding: Provide a specific "Source Citation" (exact quote) from the source material that validates the correct answer.
 
 Output Format: JSON Array of Questions.
@@ -533,6 +582,7 @@ Material Context (excerpt):
             context.subject_name,
             context.exam_type,
             config.question_count,
+            exam_specific_instr,
             type_requests_str,
             context.exam_type,
             &content[..content.len().min(20000)]
@@ -543,7 +593,7 @@ Material Context (excerpt):
             "items": {
                 "type": "object",
                 "properties": {
-                    "type": { "type": "string", "enum": ["MCQ", "ShortAnswer", "LongAnswer"] },
+                    "type": { "type": "string", "enum": ["MCQ", "ShortAnswer", "LongAnswer", "NUMERICAL", "ASSERTION_REASONING", "MULTI_CORRECT"] },
                     "text": { "type": "string" },
                     "options": { "type": "array", "items": { "type": "string" } },
                     "correctAnswerIndex": { "type": "integer" },
@@ -553,6 +603,13 @@ Material Context (excerpt):
                     "probability": { "type": "string", "enum": ["High", "Medium", "Low"] },
                     "topicName": { "type": "string" },
                     "sourceCitation": { "type": "string" },
+                    "pageNumber": { "type": "integer" },
+                    "conceptTag": { "type": "string" },
+                    "subtopicName": { "type": "string" },
+                    "numericalAnswer": { "type": "number" },
+                    "correctAnswerIndices": { "type": "array", "items": { "type": "integer" } },
+                    "assertionStatement": { "type": "string" },
+                    "reasoningStatement": { "type": "string" },
                 },
                 "required": ["type", "text", "explanation", "difficulty", "probability", "topicName", "sourceCitation"]
             }
@@ -585,6 +642,15 @@ Material Context (excerpt):
                 topic_id,
                 topic_name: q.topic_name,
                 source_citation: q.source_citation,
+                // Enhanced metadata
+                page_number: q.page_number,
+                concept_tag: q.concept_tag,
+                subtopic_name: q.subtopic_name,
+                // Exam-specific fields
+                numerical_answer: q.numerical_answer,
+                correct_answer_indices: q.correct_answer_indices,
+                assertion_statement: q.assertion_statement,
+                reasoning_statement: q.reasoning_statement,
             }
         }).collect())
     }

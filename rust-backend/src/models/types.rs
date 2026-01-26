@@ -12,6 +12,12 @@ pub enum QuestionType {
     MCQ,
     ShortAnswer,
     LongAnswer,
+    #[serde(rename = "NUMERICAL")]
+    Numerical,
+    #[serde(rename = "ASSERTION_REASONING")]
+    AssertionReasoning,
+    #[serde(rename = "MULTI_CORRECT")]
+    MultiCorrect,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -22,6 +28,29 @@ pub enum ExamPersona {
     JeeNeet,
     CaCfa,
     SatCat,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ExamType {
+    JeeMains,
+    JeeAdvanced,
+    Neet,
+    Cat,
+    Gate,
+    Upsc,
+    University,
+    SchoolCbse,
+    SchoolIcse,
+    Other,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum StudyLevel {
+    Beginner,
+    Intermediate,
+    Advanced,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +88,15 @@ pub struct Question {
     pub topic_id: String,
     pub topic_name: String,
     pub source_citation: Option<String>,
+    // Enhanced metadata
+    pub page_number: Option<u32>,
+    pub concept_tag: Option<String>,
+    pub subtopic_name: Option<String>,
+    // Exam-specific fields
+    pub numerical_answer: Option<f64>,
+    pub correct_answer_indices: Option<Vec<u32>>,
+    pub assertion_statement: Option<String>,
+    pub reasoning_statement: Option<String>,
 }
 
 /// User answer for a question
@@ -171,6 +209,9 @@ pub struct SubjectContext {
     pub subject_name: String,
     pub exam_type: String,
     pub persona: ExamPersona,
+    // New fields for exam-specific optimization
+    pub user_exam_type: Option<ExamType>,
+    pub study_level: Option<StudyLevel>,
 }
 
 /// Request body for regenerate-plan endpoint
