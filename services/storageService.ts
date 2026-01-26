@@ -1,5 +1,5 @@
 
-import { UserProfile, ExamHistoryItem, FullExamRecord, NoteRecord } from '../types';
+import { UserProfile, ExamHistoryItem, FullExamRecord, NoteRecord, ExamPersona } from '../types';
 
 const USER_STORAGE_KEY = 'examwarp_user_v1';
 const EXAM_RECORD_PREFIX = 'examwarp_record_';
@@ -11,7 +11,8 @@ const INITIAL_PROFILE: UserProfile = {
   xp: 0,
   level: 1,
   history: [],
-  hasSeenTour: false
+  hasSeenTour: false,
+  persona: ExamPersona.UNIFIED
 };
 
 // User Profile Management
@@ -34,8 +35,8 @@ export const saveUserProfile = (profile: UserProfile): void => {
   }
 };
 
-export const createUserProfile = (name: string, targetExam: string): UserProfile => {
-  const newProfile = { ...INITIAL_PROFILE, name, targetExam };
+export const createUserProfile = (name: string, targetExam: string, persona: ExamPersona): UserProfile => {
+  const newProfile = { ...INITIAL_PROFILE, name, targetExam, persona };
   saveUserProfile(newProfile);
   return newProfile;
 };

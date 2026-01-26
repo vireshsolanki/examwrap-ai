@@ -12,7 +12,8 @@ import {
     ExamConfig as ConfigType,
     UserProfile,
     ExamMode,
-    FullExamRecord
+    FullExamRecord,
+    ExamPersona
 } from './types';
 import * as GeminiService from './services/geminiService';
 import * as StorageService from './services/storageService';
@@ -78,8 +79,8 @@ const App: React.FC = () => {
         }
     }, []);
 
-    const handleOnboardingComplete = (name: string, exam: string) => {
-        const newProfile = StorageService.createUserProfile(name, exam);
+    const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona) => {
+        const newProfile = StorageService.createUserProfile(name, exam, persona);
         setUserProfile(newProfile);
         setView(AppView.DASHBOARD);
         setShowTour(true);
@@ -107,10 +108,15 @@ const App: React.FC = () => {
     };
 
     const handleSubjectConfirmed = async (context: SubjectContext) => {
-        setConfirmedContext(context);
+        // Inject user persona into context
+        const contextWithPersona = {
+            ...context,
+            persona: userProfile?.persona || ExamPersona.UNIFIED
+        };
+        setConfirmedContext(contextWithPersona);
         setLoadingState({ msg: "Mapping Knowledge Graph", sub: "Constructing syllabus topology for " + context.subjectName + "..." });
         try {
-            const syllabus = await GeminiService.generateSyllabus(uploadedContent, context);
+            const syllabus = await GeminiService.generateSyllabus(uploadedContent, contextWithPersona);
             setTopics(syllabus);
             setView(AppView.SYLLABUS);
         } catch (e) {
@@ -196,7 +202,11 @@ const App: React.FC = () => {
             setPlan(record.plan || null);
             setQuestions(record.questions);
             setExamConfig(record.config);
-            setConfirmedContext({ subjectName: record.subjectName, examType: record.examType });
+            setConfirmedContext({
+                subjectName: record.subjectName,
+                examType: record.examType,
+                persona: userProfile?.persona || ExamPersona.UNIFIED
+            });
 
             setActiveRecordId(record.id);
             setRevisionProgress(record.revisionProgress || []);
@@ -212,7 +222,11 @@ const App: React.FC = () => {
         if (record && record.plan) {
             setPlan(record.plan);
             setActiveRecordId(record.id);
-            setConfirmedContext({ subjectName: record.subjectName, examType: record.examType });
+            setConfirmedContext({
+                subjectName: record.subjectName,
+                examType: record.examType,
+                persona: userProfile?.persona || ExamPersona.UNIFIED
+            });
             setRevisionProgress(record.revisionProgress || []);
             setView(AppView.REVISION);
         } else {
@@ -241,7 +255,11 @@ const App: React.FC = () => {
             setUserAnswers([]);
             setExamMode(ExamMode.PRACTICE);
             setExamConfig(record.config);
-            setConfirmedContext({ subjectName: record.subjectName, examType: record.examType });
+            setConfirmedContext({
+                subjectName: record.subjectName,
+                examType: record.examType,
+                persona: userProfile?.persona || ExamPersona.UNIFIED
+            });
             setActiveRecordId(null);
             setView(AppView.EXAM);
         } else {
@@ -420,7 +438,10 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen font-sans bg-background text-text-primary selection:bg-primary/30 selection:text-cyan-200">
+        <div
+            className="min-h-screen font-sans bg-background text-text-primary selection:bg-primary/30 selection:text-cyan-200 transition-colors duration-500"
+            data-theme={userProfile?.persona?.toLowerCase() || 'unified'}
+        >
 
             {loadingState && <LoadingScreen message={loadingState.msg} subMessage={loadingState.sub} />}
             {showTour && userProfile && <NeuralTour userName={userProfile.name} onComplete={handleTourComplete} />}
@@ -563,7 +584,7 @@ const App: React.FC = () => {
                             ) : (
                                 <div className="text-center py-4">
                                     <p className="text-[10px] text-text-tertiary font-bold tracking-[0.2em] uppercase opacity-40 mb-2">Academic Success Platform</p>
-                                    <p className="text-[10px] text-primary font-bold tracking-widest">ExamWarp v4.0 PRO</p>
+                                    <p className="text-[10px] text-primary font-bold tracking-widest">ExamWarp PRO</p>
                                 </div>
                             )}
                         </div>

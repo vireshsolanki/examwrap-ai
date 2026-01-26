@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen, Zap } from 'lucide-react';
 import { extractTextFromPDF } from '../services/pdfService';
 
 interface FileUploadProps {
@@ -15,6 +15,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pageStatus, setPageStatus] = useState({ current: 0, total: 0 });
+  const [showHighYieldGuide, setShowHighYieldGuide] = useState(false);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -153,7 +154,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center pointer-events-none z-10 text-center">
+          <div className="flex flex-col items-center pointer-events-none z-10 text-center px-6">
             <div className={`
                   w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300
                   ${dragActive ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-white/5 border border-white/10 text-text-tertiary'}
@@ -163,9 +164,57 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             <p className="text-2xl font-bold text-white mb-2">
               {dragActive ? "Drop to start" : "Select Study Material"}
             </p>
-            <p className="text-sm text-text-tertiary font-medium mb-8">
+            <p className="text-sm text-text-tertiary font-medium mb-6">
               Drag and drop your PDF, TXT or MD files here
             </p>
+
+            {/* Added High-Yield Guidance */}
+            <div
+              onClick={(e) => { e.stopPropagation(); setShowHighYieldGuide(!showHighYieldGuide); }}
+              className={`
+                max-w-[340px] mb-8 p-4 rounded-xl transition-all duration-300 pointer-events-auto
+                ${showHighYieldGuide
+                  ? 'bg-emerald-500/10 border-emerald-500/30'
+                  : 'bg-emerald-500/5 border-emerald-500/10 hover:bg-emerald-500/10 hover:border-emerald-500/20'
+                }
+                border flex flex-col gap-3 text-left
+              `}
+            >
+              <div className="flex items-start gap-3">
+                <Zap className={`w-4 h-4 mt-0.5 transition-colors ${showHighYieldGuide ? 'text-white' : 'text-emerald-400'}`} />
+                <div className="flex-1">
+                  <p className="text-[10px] text-emerald-100/60 leading-relaxed font-medium">
+                    <span className="text-emerald-400 font-bold block mb-1 uppercase tracking-widest text-[9px]">High-Yield Mode Active</span>
+                    Our AI prioritizes **highlighted text** for higher accuracy.
+                    <span className="text-emerald-400/80 ml-1 underline decoration-dotted cursor-pointer">How to use?</span>
+                  </p>
+                </div>
+              </div>
+
+              {showHighYieldGuide && (
+                <div className="pt-2 border-t border-emerald-500/10 space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-emerald-100/40 font-bold uppercase tracking-tighter">Preparation Protocol:</p>
+                    <ul className="space-y-1.5">
+                      {[
+                        "Highlight definitions and formulas in any PDF reader.",
+                        "AI will prioritize these as 'High-Probability' content.",
+                        "Reduces speculation and forces accuracy."
+                      ].map((tip, i) => (
+                        <li key={i} className="flex items-start gap-2 text-[9px] text-emerald-100/60 leading-tight">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="text-[8px] text-emerald-400/40 font-mono tracking-tighter italic">
+                    *Requires standard Adobe/Chrome PDF highlights.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">PDF</span>
               <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">TXT</span>

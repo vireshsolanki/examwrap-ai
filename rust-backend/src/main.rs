@@ -53,11 +53,18 @@ async fn main() {
     // Create Gemini service
     let gemini_service = GeminiService::new(&config);
 
-    // Configure CORS - allow frontend origin
-    let cors = CorsLayer::new()
-        .allow_origin(Any) // For development; restrict in production
-        .allow_methods(Any)
-        .allow_headers(Any);
+    // Configure CORS
+    let cors = if config.allowed_origins == "*" {
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
+    } else {
+        CorsLayer::new()
+            .allow_origin(config.allowed_origins.parse::<axum::http::HeaderValue>().unwrap())
+            .allow_methods(Any)
+            .allow_headers(Any)
+    };
 
     // Build our application router
     let app = Router::new()
@@ -77,7 +84,7 @@ async fn main() {
         .layer(TraceLayer::new_for_http());
 
     // Bind to address
-    let addr = SocketAddr::from(([0, 0, 0, 0], config.server_port));
+    let addr: SocketAddr = config.bind_address.parse().expect("Invalid bind address");
     tracing::info!("🚀 ExamWrap Backend starting on http://{}", addr);
     tracing::info!("📋 Health check: http://{}/api/health", addr);
     tracing::info!("🧠 Identify subject: POST http://{}/api/identify-subject", addr);

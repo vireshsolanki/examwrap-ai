@@ -14,6 +14,16 @@ pub enum QuestionType {
     LongAnswer,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ExamPersona {
+    Unified,
+    Upsc,
+    JeeNeet,
+    CaCfa,
+    SatCat,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ExamProbability {
     High,
@@ -48,6 +58,7 @@ pub struct Question {
     pub probability: ExamProbability,
     pub topic_id: String,
     pub topic_name: String,
+    pub source_citation: Option<String>,
 }
 
 /// User answer for a question
@@ -73,6 +84,7 @@ pub struct ExamResult {
     pub time_management_analysis: String,
     pub concept_gaps: Vec<String>,
     pub careless_mistakes: Vec<String>,
+    pub reference_snippets: Vec<String>,
     pub xp_earned: u32,
     pub recommended_duration: u32,
 }
@@ -158,6 +170,7 @@ pub struct GenerateSyllabusRequest {
 pub struct SubjectContext {
     pub subject_name: String,
     pub exam_type: String,
+    pub persona: ExamPersona,
 }
 
 /// Request body for regenerate-plan endpoint

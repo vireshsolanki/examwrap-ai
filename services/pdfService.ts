@@ -6,14 +6,14 @@ import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs`;
 
 export const extractTextFromPDF = async (
-  file: File, 
+  file: File,
   onProgress?: (percent: number, current: number, total: number) => void
 ): Promise<string> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
     const pdf = await loadingTask.promise;
-    
+
     let fullText = '';
     const numPages = pdf.numPages;
 
@@ -22,16 +22,29 @@ export const extractTextFromPDF = async (
       try {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        // Optimizing string concatenation
+
+        // Extract annotations (Highlights)
+        const annotations = await page.getAnnotations();
+        const highlights = annotations
+          .filter((ann: any) => ann.subtype === 'Highlight')
+          .map((ann: any) => ann.contents)
+          .filter(Boolean);
+
         const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-            
-        fullText += `\n--- Page ${i} ---\n${pageText}`;
-        
+          .map((item: any) => item.str)
+          .join(' ');
+
+        fullText += `\n--- Page ${i} ---\n`;
+
+        if (highlights.length > 0) {
+          fullText += `[USER HIGHLIGHTS: ${highlights.join('; ')}]\n`;
+        }
+
+        fullText += pageText;
+
         // Report progress
         if (onProgress) {
-            onProgress(Math.round((i / numPages) * 100), i, numPages);
+          onProgress(Math.round((i / numPages) * 100), i, numPages);
         }
       } catch (pageError) {
         console.warn(`Skipping page ${i} due to error:`, pageError);

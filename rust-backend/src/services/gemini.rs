@@ -3,7 +3,7 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use crate::config::Config;
-use crate::models::{SubjectAnalysis, Topic, Question, ExamConfig, SubjectContext, QuestionType, Difficulty, ExamProbability};
+use crate::models::{SubjectAnalysis, Topic, Question, ExamConfig, SubjectContext, QuestionType, Difficulty, ExamProbability, ExamPersona};
 
 /// Gemini API client
 #[derive(Clone)]
@@ -77,9 +77,21 @@ struct RawQuestion {
     pub difficulty: Difficulty,
     pub probability: ExamProbability,
     pub topic_name: String,
+    pub source_citation: Option<String>,
 }
 
 impl GeminiService {
+    /// Get persona-specific instructions
+    fn get_persona_prompt(persona: &ExamPersona) -> &'static str {
+        match persona {
+            ExamPersona::Upsc => "Role: Master IAS Mentor. Focus on critical analysis, socio-economic impact, ethical dimensions, and administrative depth. UPSC standard.",
+            ExamPersona::JeeNeet => "Role: Senior IIT Professor. Focus on rigorous application of formulas, logical derivations, and complex numerical problem-solving. JEE Advanced/NEET standard.",
+            ExamPersona::CaCfa => "Role: Executive Auditor. Focus on regulatory compliance, precise tax logic, financial accounting standards, and data integrity. CA/CFA standard.",
+            ExamPersona::SatCat => "Role: Academic Aptitude Coach. Focus on verbal reasoning, advanced logic, speed, and mental agility. SAT/CAT/GMAT standard.",
+            ExamPersona::Unified => "Role: Expert University Tutor. Focus on comprehensive understanding, structured recall, and clear academic explanations.",
+        }
+    }
+
     /// Create a new Gemini service from config
     pub fn new(config: &Config) -> Self {
         GeminiService {
@@ -210,9 +222,12 @@ impl GeminiService {
         content: &str,
         context: &crate::models::SubjectContext,
     ) -> Result<String, String> {
+        let persona_instr = Self::get_persona_prompt(&context.persona);
         let prompt = format!(
-            r#"You are an expert tutor for {}.
+            r#"{}.
+You are an expert tutor for {}.
 Summarize the source material provided below. 
+Note: Text prefixed with "[USER HIGHLIGHTS:" contains specifically curated information. Prioritize these sections in your summary.
 Do NOT summarize the exam session or questions.
 Focus exclusively on the uploaded study content.
 
@@ -224,6 +239,7 @@ Create a detailed, structured summary/cheatsheet.
 
 Source Material (first 30k chars):
 {}"#,
+            persona_instr,
             context.subject_name,
             &content[..content.len().min(30000)]
         );
@@ -366,9 +382,10 @@ CRITICAL GRADING RULES:
 OUTPUT TASKS:
 1. Calculate Final Score (Sum of Correct MCQs + Points awarded for Text answers).
 2. Analyze patterns for "Concept Gaps" vs "Careless Mistakes".
-3. Recommend a specific number of days for revision (between 3 to 14) based on the score and density of concept gaps.
-4. Generate a default revision plan matching that recommended duration.
-5. Calculate XP (Easy=10, Medium=20, Hard=30 per correct answer).
+3. For every identified "Concept Gap", provide a specific 1-2 sentence "Review Reference" snippet from the source material that explains the concept correctly.
+4. Recommend a specific number of days for revision (between 3 to 14) based on the score and density of concept gaps.
+5. Generate a default revision plan matching that recommended duration.
+6. Calculate XP (Easy=10, Medium=20, Hard=30 per correct answer).
 
 Data: {}"#,
             context.subject_name,
@@ -391,10 +408,11 @@ Data: {}"#,
                         "timeManagementAnalysis": { "type": "string" },
                         "conceptGaps": { "type": "array", "items": { "type": "string" } },
                         "carelessMistakes": { "type": "array", "items": { "type": "string" } },
+                        "referenceSnippets": { "type": "array", "items": { "type": "string" } },
                         "xpEarned": { "type": "integer" },
                         "recommendedDuration": { "type": "integer" }
                     },
-                    "required": ["score", "totalQuestions", "accuracy", "weakTopics", "strongTopics", "feedback", "timeManagementAnalysis", "conceptGaps", "carelessMistakes", "xpEarned", "recommendedDuration"]
+                    "required": ["score", "totalQuestions", "accuracy", "weakTopics", "strongTopics", "feedback", "timeManagementAnalysis", "conceptGaps", "carelessMistakes", "referenceSnippets", "xpEarned", "recommendedDuration"]
                 },
                 "plan": {
                     "type": "object",
@@ -428,13 +446,16 @@ Data: {}"#,
         content: &str,
         context: &SubjectContext,
     ) -> Result<Vec<Topic>, String> {
+        let persona_instr = Self::get_persona_prompt(&context.persona);
         let prompt = format!(
-            r#"You are an expert curriculum designer for {} targeting {}.
+            r#"{}.
+You are an expert curriculum designer for {} targeting {}.
 Analyze the provided study material and extract a structured syllabus suitable for this specific exam goal.
 Return a list of Main Topics, each with subtopics.
 
 Material (first 25k chars):
 {}"#,
+            persona_instr,
             context.subject_name,
             context.exam_type,
             &content[..content.len().min(25000)]
@@ -481,11 +502,19 @@ Material (first 25k chars):
             .map(|t| format!("{:?}", t))
             .collect();
         let type_requests_str = type_requests.join(", ");
+        let persona_instr = Self::get_persona_prompt(&context.persona);
 
         let prompt = format!(
-            r#"Role: Expert Exam Creator for {} ({}).
+            r#"{}.
+Role: Expert Exam Creator for {} ({}).
 Context: Creating a high-quality practice assessment.
 Task: Generate exactly {} questions based on the content provided.
+
+PRIORITY RULE: 
+- The source text may contain regions tagged with "[USER HIGHLIGHTS: ...]". 
+- THESE ARE HIGH-YIELD CONCEPTS curated by the student. 
+- You MUST prioritize generating questions from these highlighted sections to ensure assessment accuracy and user relevance.
+- Minimize speculation on background text; focus on the curated high-yield data.
 
 Requirements:
 1. Question Types: Only generate [{}].
@@ -494,11 +523,13 @@ Requirements:
    - For MCQs: Provide a detailed explanation of the correct answer AND explain why each distractor is incorrect.
    - For Text: Provide the key marking points.
 4. Difficulty: Adaptive mix.
+5. Grounding: Provide a specific "Source Citation" (exact quote) from the source material that validates the correct answer.
 
 Output Format: JSON Array of Questions.
 
 Material Context (excerpt):
 {}"#,
+            persona_instr,
             context.subject_name,
             context.exam_type,
             config.question_count,
@@ -521,8 +552,9 @@ Material Context (excerpt):
                     "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard"] },
                     "probability": { "type": "string", "enum": ["High", "Medium", "Low"] },
                     "topicName": { "type": "string" },
+                    "sourceCitation": { "type": "string" },
                 },
-                "required": ["type", "text", "explanation", "difficulty", "probability", "topicName"]
+                "required": ["type", "text", "explanation", "difficulty", "probability", "topicName", "sourceCitation"]
             }
         });
 
@@ -552,6 +584,7 @@ Material Context (excerpt):
                 probability: q.probability,
                 topic_id,
                 topic_name: q.topic_name,
+                source_citation: q.source_citation,
             }
         }).collect())
     }

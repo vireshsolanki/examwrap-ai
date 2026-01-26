@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ExamResult } from '../types';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar, Sliders, Printer } from 'lucide-react';
+import { ArrowRight, AlertCircle, TrendingUp, Clock, Star, FileText, RotateCcw, AlertTriangle, Calendar, Sliders, Printer, Quote } from 'lucide-react';
 
 interface ResultsDashboardProps {
     result: ExamResult;
@@ -212,11 +212,19 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                                 Neural Gaps
                             </h3>
                             {result.conceptGaps?.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul className="space-y-3">
                                     {result.conceptGaps.slice(0, 3).map((gap, i) => (
-                                        <li key={i} className="text-[10px] text-slate-400 flex items-start gap-2 bg-white/5 p-2 rounded-lg border border-white/5">
-                                            <span className="mt-1 w-1 h-1 rounded-full bg-red-400 shrink-0 shadow-[0_0_8px_#ef4444]" />
-                                            {gap}
+                                        <li key={i} className="flex flex-col gap-2 p-3 rounded-xl bg-white/5 border border-white/5 group/gap transition-all hover:bg-white/10">
+                                            <div className="flex items-start gap-2">
+                                                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0 shadow-[0_0_8px_#ef4444]" />
+                                                <span className="text-[10px] text-slate-300 font-bold">{gap}</span>
+                                            </div>
+                                            {result.referenceSnippets && result.referenceSnippets[i] && (
+                                                <div className="mt-1 p-2 bg-red-500/5 rounded-lg border border-red-500/10 text-[9px] text-slate-400 italic leading-relaxed flex gap-2">
+                                                    <Quote className="w-3 h-3 text-red-400/50 shrink-0" />
+                                                    <span>"{result.referenceSnippets[i]}"</span>
+                                                </div>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>

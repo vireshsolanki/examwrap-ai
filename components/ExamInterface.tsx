@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Question, UserAnswer, QuestionType, ExamMode } from '../types';
-import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
+import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle, Volume2, VolumeX, Quote } from 'lucide-react';
 
 const ExamTimer = memo(({
     minutes,
@@ -499,9 +499,24 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                                     <HelpCircle className="w-4 h-4" />
                                     <h3 className="text-[10px] font-bold uppercase tracking-widest font-mono">Explanation</h3>
                                 </div>
-                                <p className="text-xs text-slate-300 leading-relaxed">
+                                <p className="text-xs text-slate-300 leading-relaxed mb-4">
                                     {currentQuestion.explanation}
                                 </p>
+
+                                {currentQuestion.sourceCitation && (
+                                    <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20 relative overflow-hidden group/cite">
+                                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/cite:opacity-20 transition-opacity">
+                                            <Quote className="w-8 h-8 text-primary" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Source Evidence</span>
+                                        </div>
+                                        <p className="text-xs text-text-secondary italic leading-relaxed relative z-10">
+                                            "{currentQuestion.sourceCitation}"
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

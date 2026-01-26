@@ -22,6 +22,14 @@ export enum ExamMode {
   REVIEW = 'REVIEW'
 }
 
+export enum ExamPersona {
+  UNIFIED = 'UNIFIED',
+  UPSC = 'UPSC',
+  JEE_NEET = 'JEE_NEET',
+  CA_CFA = 'CA_CFA',
+  SAT_CAT = 'SAT_CAT'
+}
+
 export interface Subtopic {
   name: string;
 }
@@ -54,6 +62,7 @@ export interface Question {
   probability: ExamProbability;
   topicId: string;
   topicName: string;
+  sourceCitation?: string;
 }
 
 export interface UserAnswer {
@@ -74,6 +83,7 @@ export interface ExamResult {
   timeManagementAnalysis: string;
   conceptGaps: string[];
   carelessMistakes: string[];
+  referenceSnippets: string[];
   xpEarned: number; // Gamification
   recommendedDuration: number; // AI suggested days for revision
 }
@@ -114,6 +124,7 @@ export interface SubjectAnalysis {
 export interface SubjectContext {
   subjectName: string;
   examType: string;
+  persona: ExamPersona;
 }
 
 // User & History Types
@@ -145,6 +156,7 @@ export interface UserProfile {
   level: number;
   history: ExamHistoryItem[];
   hasSeenTour?: boolean;
+  persona?: ExamPersona;
 }
 
 export interface NoteRecord {
