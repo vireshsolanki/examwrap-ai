@@ -146,3 +146,75 @@ pub async fn identify_subject(
         }
     }
 }
+
+use axum::{
+    body::Body,
+    http::{header, StatusCode},
+    response::Response,
+};
+use serde::Deserialize;
+use crate::services::PdfGenerator;
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportPdfRequest {
+    pub questions: Vec<Question>,
+    pub title: String,
+    pub time_limit: Option<u32>,
+    pub max_marks: Option<u32>,
+}
+
+/// POST /api/export-question-paper
+/// Exports questions as a PDF question paper
+pub async fn export_question_paper(
+    Json(payload): Json<ExportPdfRequest>,
+) -> Result<Response<Body>, StatusCode> {
+    tracing::info!("Export question paper request received: {}", payload.title);
+    
+    match PdfGenerator::generate_question_paper(
+        &payload.questions,
+        &payload.title,
+        payload.time_limit,
+        payload.max_marks,
+    ) {
+        Ok(pdf_bytes) => {
+            tracing::info!("Question paper PDF generated successfully");
+            let response = Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "application/pdf")
+                .header(header::CONTENT_DISPOSITION, "attachment; filename=\"question-paper.pdf\"")
+                .body(Body::from(pdf_bytes))
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            Ok(response)
+        }
+        Err(e) => {
+            tracing::error!("Failed to generate question paper PDF: {}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+/// POST /api/export-answer-key
+/// Exports answer key as a PDF
+pub async fn export_answer_key(
+    Json(payload): Json<ExportPdfRequest>,
+) -> Result<Response<Body>, StatusCode> {
+    tracing::info!("Export answer key request received: {}", payload.title);
+    
+    match PdfGenerator::generate_answer_key(&payload.questions, &payload.title) {
+        Ok(pdf_bytes) => {
+            tracing::info!("Answer key PDF generated successfully");
+            let response = Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "application/pdf")
+                .header(header::CONTENT_DISPOSITION, "attachment; filename=\"answer-key.pdf\"")
+                .body(Body::from(pdf_bytes))
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            Ok(response)
+        }
+        Err(e) => {
+            tracing::error!("Failed to generate answer key PDF: {}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}

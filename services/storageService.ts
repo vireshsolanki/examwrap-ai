@@ -1,5 +1,5 @@
 
-import { UserProfile, ExamHistoryItem, FullExamRecord, NoteRecord, ExamPersona } from '../types';
+import { UserProfile, ExamHistoryItem, FullExamRecord, NoteRecord, ExamPersona, ExamType, StudyLevel } from '../types';
 
 const USER_STORAGE_KEY = 'examwarp_user_v1';
 const EXAM_RECORD_PREFIX = 'examwarp_record_';
@@ -12,7 +12,11 @@ const INITIAL_PROFILE: UserProfile = {
   level: 1,
   history: [],
   hasSeenTour: false,
-  persona: ExamPersona.UNIFIED
+  persona: ExamPersona.UNIFIED,
+  examType: ExamType.OTHER,
+  studyLevel: StudyLevel.INTERMEDIATE,
+  examDate: undefined,
+  daysRemaining: undefined
 };
 
 // User Profile Management
@@ -35,8 +39,14 @@ export const saveUserProfile = (profile: UserProfile): void => {
   }
 };
 
-export const createUserProfile = (name: string, targetExam: string, persona: ExamPersona): UserProfile => {
-  const newProfile = { ...INITIAL_PROFILE, name, targetExam, persona };
+export const createUserProfile = (name: string, targetExam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string): UserProfile => {
+  let daysRemaining: number | undefined;
+  if (examDate) {
+    const days = Math.ceil((new Date(examDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    daysRemaining = days > 0 ? days : 0;
+  }
+  
+  const newProfile = { ...INITIAL_PROFILE, name, targetExam, persona, examType, studyLevel, examDate, daysRemaining };
   saveUserProfile(newProfile);
   return newProfile;
 };

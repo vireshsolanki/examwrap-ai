@@ -35,7 +35,7 @@ async fn health_check() -> Json<HealthResponse> {
 #[tokio::main]
 async fn main() {
     // Load environment variables from .env file
-    dotenvy::dotenv().ok();
+    dotenv::dotenv().ok();
 
     // Initialize logging
     tracing_subscriber::registry()
@@ -78,6 +78,9 @@ async fn main() {
         .route("/api/regenerate-plan", post(routes::regenerate_plan))
         .route("/api/generate-summary", post(routes::generate_summary))
         .route("/api/format-notes", post(routes::format_notes))
+        // PDF export endpoints
+        .route("/api/export-question-paper", post(routes::export_question_paper))
+        .route("/api/export-answer-key", post(routes::export_answer_key))
         // Add state and middleware
         .with_state(gemini_service)
         .layer(cors)

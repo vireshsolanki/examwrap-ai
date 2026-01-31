@@ -1,6 +1,8 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Question, UserAnswer, QuestionType, ExamMode } from '../types';
-import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle, Volume2, VolumeX, Quote } from 'lucide-react';
+import { Clock, ArrowRight, ArrowLeft, CheckCircle, HelpCircle, XCircle, Flag, Grid, List, Zap, Eye, Cpu, Activity, AlertTriangle, Volume2, VolumeX, Quote, Download, FileText } from 'lucide-react';
+import QuestionMetadata from './QuestionMetadata';
+import { exportQuestionPaper, exportAnswerKey } from '../services/pdfExportService';
 
 const ExamTimer = memo(({
     minutes,
@@ -261,6 +263,30 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
         });
     };
 
+    const handleExportQuestionPaper = async () => {
+        try {
+            await exportQuestionPaper({
+                questions,
+                title: `Practice Questions - ${new Date().toLocaleDateString()}`,
+                timeLimit: timeLimitMinutes,
+                maxMarks: questions.length * 4, // Assuming 4 marks per question
+            });
+        } catch (error) {
+            console.error('Failed to export question paper:', error);
+        }
+    };
+
+    const handleExportAnswerKey = async () => {
+        try {
+            await exportAnswerKey({
+                questions,
+                title: `Answer Key - ${new Date().toLocaleDateString()}`,
+            });
+        } catch (error) {
+            console.error('Failed to export answer key:', error);
+        }
+    };
+
     const handleCheckAnswer = () => {
         if (isReviewMode || !currentQuestion) return;
         if (currentQuestion.type === QuestionType.MCQ && existingAnswer?.selectedOptionIndex === undefined) return;
@@ -328,18 +354,40 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                     </div>
                 )}
 
-                <button
-                    onClick={toggleReviewMark}
-                    className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all active:scale-95 duration-200
-                ${markedForReview.has(currentQuestion.id)
-                            ? 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
-                            : 'text-text-secondary border border-white/10 hover:bg-white/5 hover:border-white/20'}
-            `}
-                >
-                    <Flag className="w-4 h-4" />
-                    <span className="hidden md:inline font-mono">{markedForReview.has(currentQuestion.id) ? 'FLAGGED' : 'FLAG'}</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* Export Buttons */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleExportQuestionPaper}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all active:scale-95 duration-200 text-blue-400 bg-blue-400/10 border border-blue-400/20 hover:bg-blue-400/20"
+                            title="Download Question Paper"
+                        >
+                            <Download className="w-3 h-3" />
+                            <span className="hidden md:inline">PDF</span>
+                        </button>
+                        <button
+                            onClick={handleExportAnswerKey}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all active:scale-95 duration-200 text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20"
+                            title="Download Answer Key"
+                        >
+                            <FileText className="w-3 h-3" />
+                            <span className="hidden md:inline">KEY</span>
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={toggleReviewMark}
+                        className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all active:scale-95 duration-200
+                    ${markedForReview.has(currentQuestion.id)
+                                ? 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
+                                : 'text-text-secondary border border-white/10 hover:bg-white/5 hover:border-white/20'}
+                `}
+                    >
+                        <Flag className="w-4 h-4" />
+                        <span className="hidden md:inline font-mono">{markedForReview.has(currentQuestion.id) ? 'FLAGGED' : 'FLAG'}</span>
+                    </button>
+                </div>
             </div>
 
             {/* Timer Bar */}
@@ -401,6 +449,13 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                                 {currentQuestion.text}
                             </h1>
                         </div>
+
+                        {/* Question Metadata - Page numbers, concepts, etc. */}
+                        {(currentQuestion.pageNumber || currentQuestion.conceptTag || currentQuestion.subtopicName) && (
+                            <div className="mt-4">
+                                <QuestionMetadata question={currentQuestion} compact={true} />
+                            </div>
+                        )}
 
                         {isReviewMode && (
                             <div className="mt-6 p-4 bg-emerald-900/10 border border-emerald-500/20 rounded-xl relative overflow-hidden">

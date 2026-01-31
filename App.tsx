@@ -13,7 +13,9 @@ import {
     UserProfile,
     ExamMode,
     FullExamRecord,
-    ExamPersona
+    ExamPersona,
+    ExamType,
+    StudyLevel
 } from './types';
 import * as GeminiService from './services/geminiService';
 import * as StorageService from './services/storageService';
@@ -79,8 +81,8 @@ const App: React.FC = () => {
         }
     }, []);
 
-    const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona) => {
-        const newProfile = StorageService.createUserProfile(name, exam, persona);
+    const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string) => {
+        const newProfile = StorageService.createUserProfile(name, exam, persona, examType, studyLevel, examDate);
         setUserProfile(newProfile);
         setView(AppView.DASHBOARD);
         setShowTour(true);
@@ -108,10 +110,12 @@ const App: React.FC = () => {
     };
 
     const handleSubjectConfirmed = async (context: SubjectContext) => {
-        // Inject user persona into context
+        // Inject user persona and exam context
         const contextWithPersona = {
             ...context,
-            persona: userProfile?.persona || ExamPersona.UNIFIED
+            persona: userProfile?.persona || ExamPersona.UNIFIED,
+            userExamType: userProfile?.examType,
+            studyLevel: userProfile?.studyLevel
         };
         setConfirmedContext(contextWithPersona);
         setLoadingState({ msg: "Mapping Knowledge Graph", sub: "Constructing syllabus topology for " + context.subjectName + "..." });
@@ -517,14 +521,14 @@ const App: React.FC = () => {
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-8">
                             {userProfile && (
-                                <div className="glass-card rounded-3xl p-8 relative overflow-hidden group border-primary/20">
+                                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group border-primary/20">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
-                                    <div className="flex items-center gap-6 relative z-10">
-                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                                            <User className="w-8 h-8" />
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                                            <User className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-2xl text-white tracking-tight mb-1">{userProfile.name}</h3>
+                                            <h3 className="font-bold text-lg text-white tracking-tight mb-1">{userProfile.name}</h3>
                                             <div className="flex items-center gap-3">
                                                 <span className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 uppercase tracking-widest">
                                                     Level {userProfile.level}
@@ -538,37 +542,37 @@ const App: React.FC = () => {
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest mb-6 px-4 opacity-50">Study Sections</h4>
 
-                                <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-4 p-5 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-3 rounded-xl bg-white/5 text-text-tertiary group-hover:text-primary group-hover:bg-primary/10 transition-all">
-                                        <Home className="w-5 h-5" />
+                                <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
+                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-primary group-hover:bg-primary/10 transition-all">
+                                        <Home className="w-4 h-4" />
                                     </div>
                                     <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">Dashboard</span>
-                                    <ChevronRight className="w-4 h-4 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                                    <ChevronRight className="w-3 h-3 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
                                 </button>
 
                                 {confirmedContext && (
-                                    <button onClick={handleSmartResume} className="w-full flex items-center gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20 transition-all active:scale-[0.98] text-left group">
-                                        <div className="p-3 rounded-xl bg-primary/20 text-primary shadow-lg shadow-primary/10">
-                                            <BookOpen className="w-5 h-5" />
+                                    <button onClick={handleSmartResume} className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 transition-all active:scale-[0.98] text-left group">
+                                        <div className="p-2 rounded-lg bg-primary/20 text-primary shadow-lg shadow-primary/10">
+                                            <BookOpen className="w-4 h-4" />
                                         </div>
                                         <div className="flex-1">
                                             <span className="text-primary font-bold uppercase text-xs tracking-widest block mb-0.5">Resume Study</span>
                                             <span className="text-[10px] text-primary/60 uppercase tracking-widest font-bold truncate max-w-[150px] block">{confirmedContext.subjectName}</span>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-primary" />
+                                        <ChevronRight className="w-3 h-3 text-primary" />
                                     </button>
                                 )}
 
-                                <button onClick={handleNewSession} className="w-full flex items-center gap-4 p-5 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-3 rounded-xl bg-white/5 text-text-tertiary group-hover:text-emerald-400 group-hover:bg-emerald-400/10 transition-all">
-                                        <PlusCircle className="w-5 h-5" />
+                                <button onClick={handleNewSession} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
+                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-emerald-400 group-hover:bg-emerald-400/10 transition-all">
+                                        <PlusCircle className="w-4 h-4" />
                                     </div>
                                     <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">New Practice Exam</span>
                                 </button>
 
-                                <button onClick={() => { setActiveRecordId(null); setView(AppView.DASHBOARD); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 p-5 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-3 rounded-xl bg-white/5 text-text-tertiary group-hover:text-secondary group-hover:bg-secondary/10 transition-all">
-                                        <RotateCcw className="w-5 h-5" />
+                                <button onClick={() => { setActiveRecordId(null); setView(AppView.DASHBOARD); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
+                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-secondary group-hover:bg-secondary/10 transition-all">
+                                        <RotateCcw className="w-4 h-4" />
                                     </div>
                                     <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">Exam History</span>
                                 </button>

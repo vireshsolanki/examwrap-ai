@@ -3,3 +3,4 @@ dist
 .git
 rust-backend
 jesc101.pdf
+*.md

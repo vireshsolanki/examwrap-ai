@@ -9,6 +9,9 @@ export enum QuestionType {
   MCQ = 'MCQ',
   ShortAnswer = 'ShortAnswer',
   LongAnswer = 'LongAnswer',
+  NUMERICAL = 'NUMERICAL',
+  ASSERTION_REASONING = 'ASSERTION_REASONING',
+  MULTI_CORRECT = 'MULTI_CORRECT',
 }
 
 export enum ExamProbability {
@@ -28,6 +31,25 @@ export enum ExamPersona {
   JEE_NEET = 'JEE_NEET',
   CA_CFA = 'CA_CFA',
   SAT_CAT = 'SAT_CAT'
+}
+
+export enum ExamType {
+  JEE_MAINS = 'JEE_MAINS',
+  JEE_ADVANCED = 'JEE_ADVANCED',
+  NEET = 'NEET',
+  CAT = 'CAT',
+  GATE = 'GATE',
+  UPSC = 'UPSC',
+  UNIVERSITY = 'UNIVERSITY',
+  SCHOOL_CBSE = 'SCHOOL_CBSE',
+  SCHOOL_ICSE = 'SCHOOL_ICSE',
+  OTHER = 'OTHER'
+}
+
+export enum StudyLevel {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED'
 }
 
 export interface Subtopic {
@@ -63,6 +85,15 @@ export interface Question {
   topicId: string;
   topicName: string;
   sourceCitation?: string;
+  // Enhanced metadata for better learning
+  pageNumber?: number;
+  conceptTag?: string;
+  subtopicName?: string;
+  // Exam-specific fields
+  numericalAnswer?: number;
+  correctAnswerIndices?: number[];
+  assertionStatement?: string;
+  reasoningStatement?: string;
 }
 
 export interface UserAnswer {
@@ -86,6 +117,15 @@ export interface ExamResult {
   referenceSnippets: string[];
   xpEarned: number; // Gamification
   recommendedDuration: number; // AI suggested days for revision
+  // Enhanced analytics
+  conceptWisePerformance?: {
+    [conceptName: string]: {
+      attempted: number;
+      correct: number;
+      accuracy: number;
+    };
+  };
+  weakConcepts?: string[];
 }
 
 export interface RevisionDay {
@@ -125,6 +165,9 @@ export interface SubjectContext {
   subjectName: string;
   examType: string;
   persona: ExamPersona;
+  // Enhanced exam context
+  userExamType?: ExamType;
+  studyLevel?: StudyLevel;
 }
 
 // User & History Types
@@ -157,6 +200,11 @@ export interface UserProfile {
   history: ExamHistoryItem[];
   hasSeenTour?: boolean;
   persona?: ExamPersona;
+  // New fields for exam-specific optimization
+  examType?: ExamType;
+  studyLevel?: StudyLevel;
+  examDate?: string; // ISO date string
+  daysRemaining?: number; // Calculated from examDate
 }
 
 export interface NoteRecord {
