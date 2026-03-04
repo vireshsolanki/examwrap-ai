@@ -454,7 +454,7 @@ const App: React.FC = () => {
                 <BetaWarningModal />
             </Suspense>
 
-            <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20 no-print">
+            <header className="h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print">
                 <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {view !== AppView.DASHBOARD && view !== AppView.ONBOARDING && (
@@ -504,6 +504,8 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </header>
+            {/* Spacer for fixed header */}
+            <div className="h-16 no-print" />
 
             {isMenuOpen && (
                 <div className="fixed inset-0 z-[200] flex justify-end">

@@ -131,8 +131,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+                <div className="space-y-4">
                     <div className="glass-panel p-6 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
                         <div className="flex items-center gap-2 mb-3">
@@ -254,8 +254,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                     </div>
                 </div>
 
-                <div className="lg:col-span-1">
-                    <div className="glass-panel p-6 rounded-xl h-full flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-b from-surface to-background min-h-[300px]">
+                <div className="order-first lg:order-last">
+                    <div className="glass-panel p-6 rounded-xl lg:sticky lg:top-24 flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-b from-surface to-background">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[80px]"></div>
                         <div className="w-48 h-48 relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
