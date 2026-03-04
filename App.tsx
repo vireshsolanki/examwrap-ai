@@ -20,7 +20,7 @@ import {
 import * as GeminiService from './services/geminiService';
 import * as StorageService from './services/storageService';
 import LoadingScreen from './components/LoadingScreen';
-import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight, Cpu, ArrowLeft } from 'lucide-react';
+import { Layers, Star, Menu, X, Home, PlusCircle, RotateCcw, BookOpen, User, LogOut, ChevronRight, Cpu, ArrowLeft, Mail, ExternalLink, Heart } from 'lucide-react';
 
 // Lazy Load Components
 const FileUpload = React.lazy(() => import('./components/FileUpload'));
@@ -454,8 +454,8 @@ const App: React.FC = () => {
                 <BetaWarningModal />
             </Suspense>
 
-            <header className="h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print">
-                <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+            <header className="h-14 sm:h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {view !== AppView.DASHBOARD && view !== AppView.ONBOARDING && (
                             <button
@@ -505,39 +505,44 @@ const App: React.FC = () => {
                 </div>
             </header>
             {/* Spacer for fixed header */}
-            <div className="h-16 no-print" />
+            <div className="h-14 sm:h-16 no-print" />
 
             {isMenuOpen && (
                 <div className="fixed inset-0 z-[200] flex justify-end">
                     <div
-                        className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-500"
+                        className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         onClick={() => setIsMenuOpen(false)}
                     />
 
-                    <div className="relative w-full max-w-xs glass-card h-full border-l border-white/5 animate-in slide-in-from-right duration-500 flex flex-col shadow-2xl">
-                        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></div>
-                                <span className="font-bold text-xs text-white uppercase tracking-[0.2em] opacity-80">Navigation Menu</span>
+                    <div className="relative w-full max-w-[320px] sm:max-w-xs bg-[#0d0d10] h-full border-l border-white/5 flex flex-col shadow-2xl">
+                        {/* Header */}
+                        <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                                <span className="font-bold text-[11px] text-white uppercase tracking-[0.15em]">Menu</span>
                             </div>
-                            <button onClick={() => setIsMenuOpen(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-all active:scale-90 group">
-                                <X className="w-6 h-6 text-text-tertiary group-hover:text-white" />
+                            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all active:scale-90">
+                                <X className="w-5 h-5 text-text-tertiary hover:text-white" />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        {/* Scrollable content */}
+                        <div className="flex-1 overflow-y-auto">
+                            {/* User Profile */}
                             {userProfile && (
-                                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group border-primary/20">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
-                                    <div className="flex items-center gap-4 relative z-10">
-                                        <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                                            <User className="w-6 h-6" />
+                                <div className="px-5 py-5 border-b border-white/5">
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                                            <User className="w-5 h-5" />
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg text-white tracking-tight mb-1">{userProfile.name}</h3>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 uppercase tracking-widest">
-                                                    Level {userProfile.level}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-[15px] text-white tracking-tight truncate">{userProfile.name}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-wider">
+                                                    Lvl {userProfile.level}
+                                                </span>
+                                                <span className="text-[10px] text-text-tertiary font-medium">
+                                                    {userProfile.xp.toLocaleString()} XP
                                                 </span>
                                             </div>
                                         </div>
@@ -545,58 +550,82 @@ const App: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-4">
-                                <h4 className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest mb-6 px-4 opacity-50">Study Sections</h4>
+                            {/* Navigation */}
+                            <div className="px-4 py-4">
+                                <h4 className="text-[9px] font-bold text-text-tertiary uppercase tracking-[0.2em] mb-3 px-1">Navigation</h4>
 
-                                <button onClick={handleNavigateToDashboard} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-primary group-hover:bg-primary/10 transition-all">
-                                        <Home className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">Dashboard</span>
-                                    <ChevronRight className="w-3 h-3 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
-                                </button>
-
-                                {confirmedContext && (
-                                    <button onClick={handleSmartResume} className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 transition-all active:scale-[0.98] text-left group">
-                                        <div className="p-2 rounded-lg bg-primary/20 text-primary shadow-lg shadow-primary/10">
-                                            <BookOpen className="w-4 h-4" />
+                                <nav className="space-y-1">
+                                    <button onClick={() => { handleNavigateToDashboard(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-[0.98] text-left group">
+                                        <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-primary group-hover:bg-primary/10 transition-all">
+                                            <Home className="w-4 h-4" />
                                         </div>
-                                        <div className="flex-1">
-                                            <span className="text-primary font-bold uppercase text-xs tracking-widest block mb-0.5">Resume Study</span>
-                                            <span className="text-[10px] text-primary/60 uppercase tracking-widest font-bold truncate max-w-[150px] block">{confirmedContext.subjectName}</span>
-                                        </div>
-                                        <ChevronRight className="w-3 h-3 text-primary" />
+                                        <span className="text-[13px] text-text-secondary group-hover:text-white font-semibold transition-colors">Dashboard</span>
+                                        <ChevronRight className="w-3.5 h-3.5 text-text-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-all" />
                                     </button>
-                                )}
 
-                                <button onClick={handleNewSession} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-emerald-400 group-hover:bg-emerald-400/10 transition-all">
-                                        <PlusCircle className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">New Practice Exam</span>
-                                </button>
+                                    {confirmedContext && (
+                                        <button onClick={() => { handleSmartResume(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/5 border border-primary/15 transition-all active:scale-[0.98] text-left group">
+                                            <div className="p-2 rounded-lg bg-primary/15 text-primary">
+                                                <BookOpen className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-[13px] text-primary font-semibold block">Resume Study</span>
+                                                <span className="text-[10px] text-primary/50 font-medium truncate block">{confirmedContext.subjectName}</span>
+                                            </div>
+                                            <ChevronRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        </button>
+                                    )}
 
-                                <button onClick={() => { setActiveRecordId(null); setView(AppView.DASHBOARD); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left group">
-                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-secondary group-hover:bg-secondary/10 transition-all">
-                                        <RotateCcw className="w-4 h-4" />
+                                    <button onClick={() => { handleNewSession(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-[0.98] text-left group">
+                                        <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-emerald-400 group-hover:bg-emerald-400/10 transition-all">
+                                            <PlusCircle className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[13px] text-text-secondary group-hover:text-white font-semibold transition-colors">New Practice Exam</span>
+                                    </button>
+
+                                    <button onClick={() => { setActiveRecordId(null); setView(AppView.DASHBOARD); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-[0.98] text-left group">
+                                        <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-violet-400 group-hover:bg-violet-400/10 transition-all">
+                                            <RotateCcw className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[13px] text-text-secondary group-hover:text-white font-semibold transition-colors">Exam History</span>
+                                    </button>
+                                </nav>
+                            </div>
+
+                            {/* Contact / Feedback */}
+                            <div className="px-4 py-4 border-t border-white/5">
+                                <h4 className="text-[9px] font-bold text-text-tertiary uppercase tracking-[0.2em] mb-3 px-1">Feedback & Support</h4>
+                                <a
+                                    href="mailto:vireshsolanki58@gmail.com"
+                                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-[0.98] text-left group"
+                                >
+                                    <div className="p-2 rounded-lg bg-white/5 text-text-tertiary group-hover:text-amber-400 group-hover:bg-amber-400/10 transition-all">
+                                        <Mail className="w-4 h-4" />
                                     </div>
-                                    <span className="text-text-primary group-hover:text-white font-bold uppercase text-xs tracking-widest transition-colors">Exam History</span>
-                                </button>
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-[13px] text-text-secondary group-hover:text-white font-semibold block">Send Feedback</span>
+                                        <span className="text-[10px] text-text-tertiary truncate block">vireshsolanki58@gmail.com</span>
+                                    </div>
+                                    <ExternalLink className="w-3 h-3 text-text-tertiary opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                                </a>
                             </div>
                         </div>
 
-                        <div className="p-6 border-t border-white/5 bg-white/[0.01]">
+                        {/* Footer */}
+                        <div className="px-5 py-4 border-t border-white/5 bg-white/[0.01] shrink-0 space-y-3">
                             {confirmedContext ? (
-                                <button onClick={() => handleEndSession(true)} className="w-full flex items-center justify-center gap-4 p-5 rounded-2xl border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all active:scale-95 font-bold uppercase tracking-widest text-xs">
+                                <button onClick={() => handleEndSession(true)} className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all active:scale-95 font-bold text-xs">
                                     <LogOut className="w-4 h-4" />
-                                    Finish Study Session
+                                    End Session
                                 </button>
-                            ) : (
-                                <div className="text-center py-4">
-                                    <p className="text-[10px] text-text-tertiary font-bold tracking-[0.2em] uppercase opacity-40 mb-2">Academic Success Platform</p>
-                                    <p className="text-[10px] text-primary font-bold tracking-widest">ExamWarp PRO</p>
-                                </div>
-                            )}
+                            ) : null}
+                            <div className="flex items-center justify-center gap-1.5 py-1">
+                                <span className="text-[9px] text-text-tertiary font-medium tracking-wider">Made with</span>
+                                <Heart className="w-2.5 h-2.5 text-rose-500 fill-rose-500" />
+                                <span className="text-[9px] text-text-tertiary font-medium tracking-wider">by Viresh</span>
+                                <span className="text-[9px] text-text-tertiary font-medium">·</span>
+                                <span className="text-[9px] text-primary font-bold tracking-wider">v1.0-beta</span>
+                            </div>
                         </div>
                     </div>
                 </div>

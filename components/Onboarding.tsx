@@ -38,9 +38,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="min-h-[85vh] flex flex-col items-center justify-center p-4 animate-fade-in relative">
+    <div className="min-h-[85vh] flex flex-col items-center justify-center px-3 sm:p-4 animate-fade-in relative">
 
-      <div className="max-w-md w-full glass-card p-10 relative overflow-hidden shadow-2xl border-white/5">
+      <div className="max-w-md w-full glass-card p-6 sm:p-10 relative overflow-hidden shadow-2xl border-white/5">
         <div className="flex flex-col items-center mb-10 relative z-10">
           <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-inner">
             <Sparkles className="w-7 h-7 text-primary" />
