@@ -5,12 +5,15 @@ use serde::{Deserialize, Serialize};
 use crate::config::Config;
 use crate::models::{SubjectAnalysis, Topic, Question, ExamConfig, SubjectContext, QuestionType, Difficulty, ExamProbability, ExamPersona};
 use crate::config::exam_patterns::ExamPattern;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
-/// Gemini API client
+/// Gemini API client with automatic key failover
 #[derive(Clone)]
 pub struct GeminiService {
     client: Client,
-    api_key: String,
+    api_keys: Vec<String>,
+    current_key_index: Arc<AtomicUsize>,
     model_name: String,
 }
 
@@ -104,126 +107,205 @@ impl GeminiService {
 
     /// Create a new Gemini service from config
     pub fn new(config: &Config) -> Self {
+        let key_count = config.google_api_keys.len();
+        tracing::info!("🔑 GeminiService initialized with {} API key(s)", key_count);
+        
         GeminiService {
             client: Client::new(),
-            api_key: config.google_api_key.clone(),
+            api_keys: config.google_api_keys.clone(),
+            current_key_index: Arc::new(AtomicUsize::new(0)),
             model_name: config.google_model_name.clone(),
         }
     }
 
+    /// Get the currently active API key
+    fn get_current_key(&self) -> &str {
+        let idx = self.current_key_index.load(Ordering::Relaxed);
+        &self.api_keys[idx % self.api_keys.len()]
+    }
+
+    /// Switch to the next available API key
+    fn switch_to_next_key(&self) -> bool {
+        if self.api_keys.len() <= 1 {
+            return false; // No fallback key available
+        }
+        let old_idx = self.current_key_index.load(Ordering::Relaxed);
+        let new_idx = (old_idx + 1) % self.api_keys.len();
+        self.current_key_index.store(new_idx, Ordering::Relaxed);
+        tracing::warn!(
+            "🔄 API key rate limited. Switching from key #{} to key #{}",
+            old_idx + 1,
+            new_idx + 1
+        );
+        true
+    }
+
     /// Call Gemini API with a prompt and return JSON response
+    /// Automatically retries with fallback API key on rate limit (429) or forbidden (403) errors
     async fn call_gemini<T: for<'de> Deserialize<'de>>(
         &self,
         prompt: &str,
         response_schema: serde_json::Value,
     ) -> Result<T, String> {
-        let url = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
-            self.model_name, self.api_key
-        );
+        let max_attempts = self.api_keys.len();
+        let mut last_error = String::new();
 
-        let request_body = GeminiRequest {
-            contents: vec![Content {
-                parts: vec![Part {
-                    text: prompt.to_string(),
+        for attempt in 0..max_attempts {
+            let api_key = self.get_current_key();
+            let url = format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
+                self.model_name, api_key
+            );
+
+            let request_body = GeminiRequest {
+                contents: vec![Content {
+                    parts: vec![Part {
+                        text: prompt.to_string(),
+                    }],
                 }],
-            }],
-            generation_config: GenerationConfig {
-                response_mime_type: "application/json".to_string(),
-                response_schema: Some(response_schema),
-            },
-        };
+                generation_config: GenerationConfig {
+                    response_mime_type: "application/json".to_string(),
+                    response_schema: Some(response_schema.clone()),
+                },
+            };
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&request_body)
-            .send()
-            .await
-            .map_err(|e| format!("HTTP request failed: {}", e))?;
+            let response = self
+                .client
+                .post(&url)
+                .json(&request_body)
+                .send()
+                .await
+                .map_err(|e| format!("HTTP request failed: {}", e))?;
 
-        let status = response.status();
-        let body = response
-            .text()
-            .await
-            .map_err(|e| format!("Failed to read response: {}", e))?;
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .map_err(|e| format!("Failed to read response: {}", e))?;
 
-        if !status.is_success() {
-            tracing::error!("Gemini API error: {} - {}", status, body);
-            return Err(format!("Gemini API error: {}", status));
+            // Check for rate limit (429) or forbidden (403) errors — try failover
+            if (status.as_u16() == 429 || status.as_u16() == 403) && attempt < max_attempts - 1 {
+                tracing::warn!("⚠️ Key #{} hit rate limit/quota (HTTP {}). Attempting failover...", 
+                    self.current_key_index.load(Ordering::Relaxed) + 1, status.as_u16());
+                last_error = format!("API key rate limited (HTTP {})", status.as_u16());
+                self.switch_to_next_key();
+                continue;
+            }
+
+            if !status.is_success() {
+                tracing::error!("Gemini API error: {} - {}", status, body);
+                return Err(format!("Gemini API error: {}", status));
+            }
+
+            let gemini_response: GeminiResponse = serde_json::from_str(&body)
+                .map_err(|e| format!("Failed to parse Gemini response: {} - Body: {}", e, body))?;
+
+            if let Some(error) = gemini_response.error {
+                // Check if error message indicates quota/rate limit
+                if (error.message.contains("quota") || error.message.contains("rate") || error.message.contains("RESOURCE_EXHAUSTED"))
+                    && attempt < max_attempts - 1 {
+                    tracing::warn!("⚠️ Key #{} quota exhausted: {}. Attempting failover...",
+                        self.current_key_index.load(Ordering::Relaxed) + 1, error.message);
+                    last_error = error.message;
+                    self.switch_to_next_key();
+                    continue;
+                }
+                return Err(format!("Gemini error: {}", error.message));
+            }
+
+            let text = gemini_response
+                .candidates
+                .and_then(|c| c.into_iter().next())
+                .and_then(|c| c.content.parts.into_iter().next())
+                .map(|p| p.text)
+                .ok_or_else(|| "No response from Gemini".to_string())?;
+
+            // Clean and parse JSON response
+            let cleaned = clean_json(&text);
+            return serde_json::from_str(&cleaned)
+                .map_err(|e| format!("Failed to parse JSON: {} - Text: {}", e, cleaned));
         }
 
-        let gemini_response: GeminiResponse = serde_json::from_str(&body)
-            .map_err(|e| format!("Failed to parse Gemini response: {} - Body: {}", e, body))?;
-
-        if let Some(error) = gemini_response.error {
-            return Err(format!("Gemini error: {}", error.message));
-        }
-
-        let text = gemini_response
-            .candidates
-            .and_then(|c| c.into_iter().next())
-            .and_then(|c| c.content.parts.into_iter().next())
-            .map(|p| p.text)
-            .ok_or_else(|| "No response from Gemini".to_string())?;
-
-        // Clean and parse JSON response
-        let cleaned = clean_json(&text);
-        serde_json::from_str(&cleaned)
-            .map_err(|e| format!("Failed to parse JSON: {} - Text: {}", e, cleaned))
+        Err(format!("All API keys exhausted. Last error: {}", last_error))
     }
 
     /// Call Gemini API for plain text response (Markdown)
+    /// Automatically retries with fallback API key on rate limit (429) or forbidden (403) errors
     async fn call_gemini_text(&self, prompt: &str) -> Result<String, String> {
-        let url = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
-            self.model_name, self.api_key
-        );
+        let max_attempts = self.api_keys.len();
+        let mut last_error = String::new();
 
-        let request_body = GeminiRequest {
-            contents: vec![Content {
-                parts: vec![Part {
-                    text: prompt.to_string(),
+        for attempt in 0..max_attempts {
+            let api_key = self.get_current_key();
+            let url = format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
+                self.model_name, api_key
+            );
+
+            let request_body = GeminiRequest {
+                contents: vec![Content {
+                    parts: vec![Part {
+                        text: prompt.to_string(),
+                    }],
                 }],
-            }],
-            generation_config: GenerationConfig {
-                response_mime_type: "text/plain".to_string(),
-                response_schema: None,
-            },
-        };
+                generation_config: GenerationConfig {
+                    response_mime_type: "text/plain".to_string(),
+                    response_schema: None,
+                },
+            };
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&request_body)
-            .send()
-            .await
-            .map_err(|e| format!("HTTP request failed: {}", e))?;
+            let response = self
+                .client
+                .post(&url)
+                .json(&request_body)
+                .send()
+                .await
+                .map_err(|e| format!("HTTP request failed: {}", e))?;
 
-        let status = response.status();
-        let body = response
-            .text()
-            .await
-            .map_err(|e| format!("Failed to read response: {}", e))?;
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .map_err(|e| format!("Failed to read response: {}", e))?;
 
-        if !status.is_success() {
-            tracing::error!("Gemini API error: {} - {}", status, body);
-            return Err(format!("Gemini API error: {}", status));
+            // Check for rate limit (429) or forbidden (403) errors — try failover
+            if (status.as_u16() == 429 || status.as_u16() == 403) && attempt < max_attempts - 1 {
+                tracing::warn!("⚠️ Key #{} hit rate limit/quota (HTTP {}). Attempting failover...", 
+                    self.current_key_index.load(Ordering::Relaxed) + 1, status.as_u16());
+                last_error = format!("API key rate limited (HTTP {})", status.as_u16());
+                self.switch_to_next_key();
+                continue;
+            }
+
+            if !status.is_success() {
+                tracing::error!("Gemini API error: {} - {}", status, body);
+                return Err(format!("Gemini API error: {}", status));
+            }
+
+            let gemini_response: GeminiResponse = serde_json::from_str(&body)
+                .map_err(|e| format!("Failed to parse Gemini response: {} - Body: {}", e, body))?;
+
+            if let Some(error) = gemini_response.error {
+                if (error.message.contains("quota") || error.message.contains("rate") || error.message.contains("RESOURCE_EXHAUSTED"))
+                    && attempt < max_attempts - 1 {
+                    tracing::warn!("⚠️ Key #{} quota exhausted: {}. Attempting failover...",
+                        self.current_key_index.load(Ordering::Relaxed) + 1, error.message);
+                    last_error = error.message;
+                    self.switch_to_next_key();
+                    continue;
+                }
+                return Err(format!("Gemini error: {}", error.message));
+            }
+
+            return gemini_response
+                .candidates
+                .and_then(|c| c.into_iter().next())
+                .and_then(|c| c.content.parts.into_iter().next())
+                .map(|p| p.text)
+                .ok_or_else(|| "No response from Gemini".to_string());
         }
 
-        let gemini_response: GeminiResponse = serde_json::from_str(&body)
-            .map_err(|e| format!("Failed to parse Gemini response: {} - Body: {}", e, body))?;
-
-        if let Some(error) = gemini_response.error {
-            return Err(format!("Gemini error: {}", error.message));
-        }
-
-        gemini_response
-            .candidates
-            .and_then(|c| c.into_iter().next())
-            .and_then(|c| c.content.parts.into_iter().next())
-            .map(|p| p.text)
-            .ok_or_else(|| "No response from Gemini".to_string())
+        Err(format!("All API keys exhausted. Last error: {}", last_error))
     }
 
     /// Generate smart summary from content (matches generateSmartSummary in geminiService.ts)

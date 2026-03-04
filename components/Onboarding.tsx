@@ -18,7 +18,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       let persona = ExamPersona.UNIFIED;
       let examType = ExamType.OTHER;
       let studyLevel = StudyLevel.INTERMEDIATE;
-      
+
       // Auto-detect from class level
       if (classLevel.includes('JEE') || classLevel.includes('NEET')) {
         persona = ExamPersona.JEE_NEET;
@@ -32,7 +32,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       } else if (classLevel.includes('University')) {
         examType = ExamType.UNIVERSITY;
       }
-      
+
       onComplete(name, classLevel, persona, examType, studyLevel, undefined);
     }
   };
@@ -53,8 +53,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </p>
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-text-secondary leading-relaxed">
-              📱 <strong className="text-white">Quick Revision:</strong> Practice MCQs online<br/>
-              📄 <strong className="text-white">Exam Practice:</strong> Download question papers<br/>
+              📱 <strong className="text-white">Quick Revision:</strong> Practice MCQs online<br />
+              📄 <strong className="text-white">Exam Practice:</strong> Download question papers<br />
               <span className="text-primary font-semibold">From your own textbook, in 30 seconds.</span>
             </p>
           </div>
@@ -147,7 +147,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <span className="text-[10px] font-bold">LinkedIn</span>
             </a>
             <a
-              href="mailto:viresh@example.com"
+              href="mailto:vireshsolanki58@gmail.com"
               className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors group"
             >
               <Mail className="w-4 h-4 group-hover:text-primary" />

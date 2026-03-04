@@ -48,7 +48,7 @@ async fn main() {
 
     // Load configuration
     let config = Config::from_env().expect("Failed to load configuration");
-    tracing::info!("Configuration loaded, model: {}", config.google_model_name);
+    tracing::info!("Configuration loaded, model: {}, API keys: {}", config.google_model_name, config.google_api_keys.len());
 
     // Create Gemini service
     let gemini_service = GeminiService::new(&config);

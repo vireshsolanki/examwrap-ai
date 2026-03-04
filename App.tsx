@@ -36,6 +36,7 @@ const SummaryView = React.lazy(() => import('./components/SummaryView'));
 const NotesFormatter = React.lazy(() => import('./components/NotesFormatter'));
 const NeuralTour = React.lazy(() => import('./components/NeuralTour'));
 const ExamExportView = React.lazy(() => import('./components/ExamExportView'));
+const BetaWarningModal = React.lazy(() => import('./components/BetaWarningModal'));
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppView>(AppView.ONBOARDING);
@@ -449,6 +450,9 @@ const App: React.FC = () => {
 
             {loadingState && <LoadingScreen message={loadingState.msg} subMessage={loadingState.sub} />}
             {showTour && userProfile && <NeuralTour userName={userProfile.name} onComplete={handleTourComplete} />}
+            <Suspense fallback={null}>
+                <BetaWarningModal />
+            </Suspense>
 
             <header className="h-16 glass-header sticky top-0 z-40 transition-all duration-300 border-b border-primary/20 no-print">
                 <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">

@@ -1,6 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen, Zap } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen, Zap, HelpCircle } from 'lucide-react';
 import { extractTextFromPDF } from '../services/pdfService';
+import PdfUploadGuide from './PdfUploadGuide';
+
+const PDF_GUIDE_SEEN_KEY = 'examwarp_pdf_guide_seen';
 
 interface FileUploadProps {
   onUpload: (content: string) => void;
@@ -16,6 +19,21 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
   const [progress, setProgress] = useState(0);
   const [pageStatus, setPageStatus] = useState({ current: 0, total: 0 });
   const [showHighYieldGuide, setShowHighYieldGuide] = useState(false);
+  const [showPdfGuide, setShowPdfGuide] = useState(false);
+
+  // Auto-show the PDF guide popup on first visit to upload page
+  useEffect(() => {
+    const hasSeen = localStorage.getItem(PDF_GUIDE_SEEN_KEY);
+    if (!hasSeen) {
+      const timer = setTimeout(() => setShowPdfGuide(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleClosePdfGuide = () => {
+    setShowPdfGuide(false);
+    localStorage.setItem(PDF_GUIDE_SEEN_KEY, 'true');
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -88,6 +106,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
 
   return (
     <div className="max-w-4xl mx-auto mt-12 px-6 animate-fade-in pb-20">
+      <PdfUploadGuide isOpen={showPdfGuide} onClose={handleClosePdfGuide} />
+
       <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-widest mb-6">
           <BookOpen className="w-3.5 h-3.5" /> Study Material Upload
@@ -98,6 +118,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
         <p className="text-text-secondary text-base font-medium max-w-lg mx-auto opacity-80 leading-relaxed">
           Upload your syllabus, notes, or sample papers. We'll analyze them to help you prepare better.
         </p>
+        <button
+          onClick={() => setShowPdfGuide(true)}
+          className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/15 hover:border-emerald-500/30 transition-all active:scale-95 group"
+        >
+          <HelpCircle className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+          <span className="text-xs font-bold text-emerald-400 group-hover:text-emerald-300 uppercase tracking-wider transition-colors">
+            How to Upload a Highlighted PDF
+          </span>
+        </button>
       </div>
 
       <div
@@ -186,7 +215,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
                   <p className="text-[10px] text-emerald-100/60 leading-relaxed font-medium">
                     <span className="text-emerald-400 font-bold block mb-1 uppercase tracking-widest text-[9px]">High-Yield Mode Active</span>
                     Our AI prioritizes **highlighted text** for higher accuracy.
-                    <span className="text-emerald-400/80 ml-1 underline decoration-dotted cursor-pointer">How to use?</span>
+                    <span onClick={(e) => { e.stopPropagation(); setShowPdfGuide(true); }} className="text-emerald-400/80 ml-1 underline decoration-dotted cursor-pointer hover:text-emerald-300 transition-colors">How to use?</span>
                   </p>
                 </div>
               </div>
