@@ -136,9 +136,11 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
       };
     }
 
-    const padding = 20;
-    const tooltipHeight = 220; // Approx reduced height
+    const padding = 16;
+    const tooltipHeight = 200;
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const tooltipWidth = Math.min(300, viewportWidth - 32);
 
     // Auto-flip logic if bottom would overflow
     let finalPos = activeStep.position;
@@ -146,10 +148,16 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
       finalPos = 'top';
     }
 
+    // Clamp horizontal position so tooltip doesn't go off-screen
+    let leftPos = coords.left + coords.width / 2;
+    const halfTooltip = tooltipWidth / 2;
+    if (leftPos - halfTooltip < 16) leftPos = halfTooltip + 16;
+    if (leftPos + halfTooltip > viewportWidth - 16) leftPos = viewportWidth - halfTooltip - 16;
+
     if (finalPos === 'bottom') {
       return {
         top: `${coords.top + coords.height + padding}px`,
-        left: `${coords.left + coords.width / 2}px`,
+        left: `${leftPos}px`,
         transform: 'translateX(-50%)',
         position: 'fixed' as const
       };
@@ -157,7 +165,7 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
 
     return {
       top: `${coords.top - padding}px`,
-      left: `${coords.left + coords.width / 2}px`,
+      left: `${leftPos}px`,
       transform: 'translate(-50%, -100%)',
       position: 'fixed' as const
     };
@@ -196,7 +204,7 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
 
       {/* Tooltip Content */}
       <div
-        className={`absolute w-[320px] glass-card rounded-2xl p-6 border border-white/20 shadow-2xl transition-all duration-500 pointer-events-auto ${visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}`}
+        className={`absolute w-[calc(100vw-32px)] max-w-[300px] glass-card rounded-2xl p-5 sm:p-6 border border-white/20 shadow-2xl transition-all duration-500 pointer-events-auto ${visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}`}
         style={getTooltipStyle()}
       >
         <div className="relative z-10">
@@ -207,9 +215,9 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/40 shadow-lg shadow-primary/20">
-              <Icon className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/40 shadow-lg shadow-primary/20 shrink-0">
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
               <div className="text-[10px] font-bold text-primary uppercase tracking-widest mb-0.5">
@@ -219,14 +227,14 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
             </div>
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-2 tracking-tight leading-tight">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-1.5 sm:mb-2 tracking-tight leading-tight">
             {activeStep.targetId === 'welcome' ? `Hello, ${userName}` : activeStep.title}
           </h3>
-          <p className="text-xs text-text-secondary leading-relaxed mb-6 font-medium">
+          <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed mb-4 sm:mb-6 font-medium">
             {activeStep.description}
           </p>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
@@ -236,7 +244,7 @@ const NeuralTour: React.FC<NeuralTourProps> = ({ onComplete, userName }) => {
             </button>
             <button
               onClick={handleNext}
-              className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/30 active:scale-95 uppercase tracking-widest"
+              className="px-4 sm:px-6 py-2.5 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/30 active:scale-95 uppercase tracking-widest"
             >
               {currentStep === TOUR_STEPS.length - 1 ? 'Start Studying' : 'Next'}
               <ChevronRight className="w-3 h-3" />
