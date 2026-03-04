@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense, useEffect } from 'react';
+import React, { useState, Suspense, useEffect, useRef, useCallback } from 'react';
 import {
     AppView,
     Topic,
@@ -43,6 +43,8 @@ const App: React.FC = () => {
     const [loadingState, setLoadingState] = useState<{ msg: string, sub?: string } | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showTour, setShowTour] = useState(false);
+    const [headerVisible, setHeaderVisible] = useState(true);
+    const lastScrollY = useRef(0);
 
     // User State
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -80,6 +82,23 @@ const App: React.FC = () => {
         } else {
             setView(AppView.ONBOARDING);
         }
+    }, []);
+
+    // Auto-hide header on scroll down, show on scroll up
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentY = window.scrollY;
+            if (currentY < 60) {
+                setHeaderVisible(true);
+            } else if (currentY > lastScrollY.current + 5) {
+                setHeaderVisible(false);
+            } else if (currentY < lastScrollY.current - 5) {
+                setHeaderVisible(true);
+            }
+            lastScrollY.current = currentY;
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string) => {
@@ -454,7 +473,7 @@ const App: React.FC = () => {
                 <BetaWarningModal />
             </Suspense>
 
-            <header className="h-14 sm:h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print">
+            <header className={`h-14 sm:h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {view !== AppView.DASHBOARD && view !== AppView.ONBOARDING && (
