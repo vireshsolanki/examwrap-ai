@@ -473,58 +473,62 @@ const App: React.FC = () => {
                 <BetaWarningModal />
             </Suspense>
 
-            <header className={`h-14 sm:h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        {view !== AppView.DASHBOARD && view !== AppView.ONBOARDING && (
-                            <button
-                                onClick={handleNavigateToDashboard}
-                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white transition-all border border-white/5 hover:border-white/20"
-                                title="Back to Dashboard"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                        )}
-                        <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
-                                <Cpu className="w-5 h-5 text-white" />
+            {view !== AppView.ONBOARDING && (
+                <>
+                    <header className={`h-14 sm:h-16 glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300 no-print ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                {view !== AppView.DASHBOARD && (
+                                    <button
+                                        onClick={handleNavigateToDashboard}
+                                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white transition-all border border-white/5 hover:border-white/20"
+                                        title="Back to Dashboard"
+                                    >
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </button>
+                                )}
+                                <div className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform group" onClick={handleNavigateToDashboard}>
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-shadow">
+                                        <Cpu className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-base tracking-tight text-white leading-none uppercase">ExamWarp</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex flex-col">
-                                <span className="font-bold text-base tracking-tight text-white leading-none uppercase">ExamWarp</span>
+
+                            <div className="flex items-center gap-4">
+                                {userProfile && (
+                                    <>
+                                        {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && (
+                                            <div className="hidden md:flex items-center gap-3 text-xs border-r border-white/10 pr-4">
+                                                <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
+                                            </div>
+                                        )}
+
+                                        <div
+                                            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-white/5 transition-all active:scale-95 group"
+                                            onClick={handleNavigateToDashboard}
+                                        >
+                                            <Star className="w-4 h-4 text-primary" />
+                                            <span className="text-xs font-bold text-white leading-none tracking-tight">{userProfile.xp.toLocaleString()} XP</span>
+                                        </div>
+
+                                        <button
+                                            onClick={() => setIsMenuOpen(true)}
+                                            className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-text-secondary hover:text-white transition-all active:scale-90"
+                                        >
+                                            <Menu className="w-5 h-5" />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        {userProfile && (
-                            <>
-                                {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && (
-                                    <div className="hidden md:flex items-center gap-3 text-xs border-r border-white/10 pr-4">
-                                        <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
-                                    </div>
-                                )}
-
-                                <div
-                                    className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-white/5 transition-all active:scale-95 group"
-                                    onClick={handleNavigateToDashboard}
-                                >
-                                    <Star className="w-4 h-4 text-primary" />
-                                    <span className="text-xs font-bold text-white leading-none tracking-tight">{userProfile.xp.toLocaleString()} XP</span>
-                                </div>
-
-                                <button
-                                    onClick={() => setIsMenuOpen(true)}
-                                    className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-text-secondary hover:text-white transition-all active:scale-90"
-                                >
-                                    <Menu className="w-5 h-5" />
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </header>
-            {/* Spacer for fixed header */}
-            <div className="h-14 sm:h-16 no-print" />
+                    </header>
+                    {/* Spacer for fixed header */}
+                    <div className="h-14 sm:h-16 no-print" />
+                </>
+            )}
 
             {isMenuOpen && (
                 <div className="fixed inset-0 z-[200] flex justify-end">
