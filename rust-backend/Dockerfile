@@ -21,13 +21,11 @@ RUN touch src/main.rs
 RUN cargo build --release
 
 # Runtime Stage
-# Runtime Stage
 FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
 
 COPY --from=builder /app/target/release/examwrap-backend .
-COPY --from=builder /app/.env .
 
 EXPOSE 8080
 
