@@ -43,10 +43,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     };
 
     return (
-        <div className="max-w-5xl mx-auto mt-6 px-4 pb-12 fade-in">
+        <div className="max-w-5xl mx-auto mt-4 sm:mt-6 px-3 sm:px-4 pb-12 fade-in">
             <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                         Assessment Analysis
                         {scorePercentage > 80 && <span className="text-xl animate-bounce">🎉</span>}
                     </h1>
@@ -103,7 +103,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-6">
                 <div className="glass-panel p-4 rounded-xl">
                     <div className="text-[9px] text-text-tertiary uppercase font-bold tracking-widest mb-1 font-mono">Accuracy</div>
                     <div className="flex items-baseline gap-2">

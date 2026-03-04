@@ -317,11 +317,11 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden fade-in relative bg-background">
+        <div className="flex flex-col h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] max-h-[calc(100vh-56px)] sm:max-h-[calc(100vh-64px)] overflow-hidden fade-in relative bg-background">
 
             {/* Tech Header */}
-            <div className="h-20 border-b border-primary/20 bg-surface/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-20 relative">
-                <div className="flex items-center gap-6">
+            <div className="h-14 sm:h-20 border-b border-primary/20 bg-surface/80 backdrop-blur-md flex items-center justify-between px-3 sm:px-6 shrink-0 z-20 relative">
+                <div className="flex items-center gap-3 sm:gap-6">
                     <button
                         onClick={() => setShowPalette(!showPalette)}
                         className={`p-2.5 rounded-lg transition-all active:scale-95 duration-200 border ${showPalette ? 'bg-primary/20 border-primary text-primary' : 'border-white/10 bg-white/5 text-text-secondary hover:border-white/30'}`}
@@ -335,7 +335,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                         </div>
                         <div className="flex items-baseline gap-1 text-white">
-                            <span className="text-2xl font-bold font-mono">{String(currentIndex + 1).padStart(2, '0')}</span>
+                            <span className="text-xl sm:text-2xl font-bold font-mono">{String(currentIndex + 1).padStart(2, '0')}</span>
                             <span className="text-sm text-text-tertiary font-mono">/ {String(questions.length).padStart(2, '0')}</span>
                         </div>
                     </div>
@@ -349,12 +349,12 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                 </div>
 
                 {!isReviewMode && (
-                    <div className="hidden md:block absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="hidden sm:block absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
                         <ExamTimer minutes={timeLimitMinutes} onTimeUp={handleForceSubmit} />
                     </div>
                 )}
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                     {/* Export Buttons */}
                     <div className="flex items-center gap-2">
                         <button
@@ -402,7 +402,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
 
             {/* Info Genius Palette */}
             {showPalette && (
-                <div className="absolute top-20 left-0 w-full md:w-80 h-[calc(100vh-144px)] glass-panel border-r border-primary/20 z-30 overflow-y-auto p-4 animate-in slide-in-from-left duration-200">
+                <div className="absolute top-14 sm:top-20 left-0 w-full sm:w-80 h-[calc(100vh-144px)] glass-panel border-r border-primary/20 z-30 overflow-y-auto p-4 animate-in slide-in-from-left duration-200">
                     <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 font-mono border-b border-primary/20 pb-2">Question Palette</h3>
                     <div className="grid grid-cols-5 gap-2">
                         {questions.map((q, idx) => {
@@ -429,7 +429,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
             <div className="flex-grow flex flex-col lg:flex-row overflow-hidden relative">
 
                 {/* Left: Document View - Compact */}
-                <div className="lg:w-1/2 p-5 md:p-6 overflow-y-auto border-b lg:border-b-0 lg:border-r border-white/5 bg-black/40 custom-scrollbar scroll-smooth">
+                <div className="lg:w-1/2 p-4 sm:p-6 overflow-y-auto border-b lg:border-b-0 lg:border-r border-white/5 bg-black/40 custom-scrollbar scroll-smooth">
                     <div className="max-w-3xl mx-auto lg:mx-0">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex gap-2">
@@ -480,7 +480,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                 </div>
 
                 {/* Right: Interaction Panel - Compact */}
-                <div className="lg:w-1/2 p-5 md:p-6 overflow-y-auto bg-surface/30 custom-scrollbar scroll-smooth">
+                <div className="lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-surface/30 custom-scrollbar scroll-smooth">
                     <div className="max-w-3xl mx-auto lg:mx-0">
 
                         {/* Options/Input */}
@@ -579,7 +579,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="h-16 border-t border-white/5 bg-background/90 backdrop-blur-md shrink-0 flex items-center justify-center px-4 z-20">
+            <div className="h-14 sm:h-16 border-t border-white/5 bg-background/90 backdrop-blur-md shrink-0 flex items-center justify-center px-3 sm:px-4 z-20">
                 <div className="w-full max-w-5xl flex justify-between items-center">
 
                     <button
@@ -606,7 +606,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                             <button
                                 onClick={handleSubmitExam}
                                 disabled={isAnalyzing}
-                                className="px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 duration-200 flex items-center gap-2"
+                                className="px-5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 duration-200 flex items-center gap-2 text-xs sm:text-sm"
                             >
                                 {isReviewMode ? "Exit Review" : (isAnalyzing ? "Processing..." : "Finish Exam")}
                                 {!isAnalyzing && <Cpu className="w-4 h-4" />}
@@ -615,7 +615,7 @@ const ExamInterface: React.FC<ExamInterfaceProps> = ({
                             <button
                                 onClick={() => navigateTo(currentIndex + 1)}
                                 disabled={isAnalyzing || (isTimeUp && !isReviewMode)}
-                                className="px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 duration-200 flex items-center gap-2"
+                                className="px-5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 duration-200 flex items-center gap-2 text-xs sm:text-sm"
                             >
                                 NEXT
                                 <ArrowRight className="w-4 h-4" />
