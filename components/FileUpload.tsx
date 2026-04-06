@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2, File, Loader2, BookOpen, Zap, HelpCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, BookOpen, HelpCircle } from 'lucide-react';
 import { extractTextFromPDF } from '../services/pdfService';
 import PdfUploadGuide from './PdfUploadGuide';
 
@@ -18,10 +18,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pageStatus, setPageStatus] = useState({ current: 0, total: 0 });
-  const [showHighYieldGuide, setShowHighYieldGuide] = useState(false);
   const [showPdfGuide, setShowPdfGuide] = useState(false);
 
-  // Auto-show the PDF guide popup on first visit to upload page
   useEffect(() => {
     const hasSeen = localStorage.getItem(PDF_GUIDE_SEEN_KEY);
     if (!hasSeen) {
@@ -132,7 +130,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
       <div
         className={`
           relative group glass-card transition-all duration-300 ease-out
-          flex flex-col items-center justify-center min-h-[380px] p-10 border-dashed
+          flex flex-col items-center justify-center min-h-[340px] p-10 border-dashed
           ${isProcessing ? "cursor-wait" : "cursor-pointer"}
           ${dragActive
             ? "border-primary bg-primary/5 scale-[1.01]"
@@ -161,7 +159,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 border border-primary/20">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-
             <div className="w-full space-y-3 mb-4">
               <div className="flex justify-between text-xs font-bold text-primary uppercase tracking-wider">
                 <span>Reading File</span>
@@ -174,7 +171,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
                 />
               </div>
             </div>
-
             <p className="text-[11px] text-text-tertiary font-bold uppercase tracking-wider">
               {pageStatus.total > 0
                 ? `Processing Page ${pageStatus.current} of ${pageStatus.total}`
@@ -196,54 +192,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, isLoading }) => {
             <p className="text-sm text-text-tertiary font-medium mb-6">
               Drag and drop your PDF, TXT or MD files here
             </p>
-
-            {/* Added High-Yield Guidance */}
-            <div
-              onClick={(e) => { e.stopPropagation(); setShowHighYieldGuide(!showHighYieldGuide); }}
-              className={`
-                max-w-[340px] mb-8 p-4 rounded-xl transition-all duration-300 pointer-events-auto
-                ${showHighYieldGuide
-                  ? 'bg-emerald-500/10 border-emerald-500/30'
-                  : 'bg-emerald-500/5 border-emerald-500/10 hover:bg-emerald-500/10 hover:border-emerald-500/20'
-                }
-                border flex flex-col gap-3 text-left
-              `}
-            >
-              <div className="flex items-start gap-3">
-                <Zap className={`w-4 h-4 mt-0.5 transition-colors ${showHighYieldGuide ? 'text-white' : 'text-emerald-400'}`} />
-                <div className="flex-1">
-                  <p className="text-[10px] text-emerald-100/60 leading-relaxed font-medium">
-                    <span className="text-emerald-400 font-bold block mb-1 uppercase tracking-widest text-[9px]">High-Yield Mode Active</span>
-                    Our AI prioritizes **highlighted text** for higher accuracy.
-                    <span onClick={(e) => { e.stopPropagation(); setShowPdfGuide(true); }} className="text-emerald-400/80 ml-1 underline decoration-dotted cursor-pointer hover:text-emerald-300 transition-colors">How to use?</span>
-                  </p>
-                </div>
-              </div>
-
-              {showHighYieldGuide && (
-                <div className="pt-2 border-t border-emerald-500/10 space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <div className="space-y-2">
-                    <p className="text-[10px] text-emerald-100/40 font-bold uppercase tracking-tighter">Preparation Protocol:</p>
-                    <ul className="space-y-1.5">
-                      {[
-                        "Highlight definitions and formulas in any PDF reader.",
-                        "AI will prioritize these as 'High-Probability' content.",
-                        "Reduces speculation and forces accuracy."
-                      ].map((tip, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[9px] text-emerald-100/60 leading-tight">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
-                          {tip}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <p className="text-[8px] text-emerald-400/40 font-mono tracking-tighter italic">
-                    *Requires standard Adobe/Chrome PDF highlights.
-                  </p>
-                </div>
-              )}
-            </div>
-
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">PDF</span>
               <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold text-text-tertiary uppercase tracking-wider">TXT</span>

@@ -78,6 +78,9 @@ async fn main() {
         .route("/api/regenerate-plan", post(routes::regenerate_plan))
         .route("/api/generate-summary", post(routes::generate_summary))
         .route("/api/format-notes", post(routes::format_notes))
+        // PDF summariser & configured notes endpoints
+        .route("/api/summarise-pdf", post(routes::summarise_pdf))
+        .route("/api/format-notes-configured", post(routes::format_notes_configured))
         // PDF export endpoints
         .route("/api/export-question-paper", post(routes::export_question_paper))
         .route("/api/export-answer-key", post(routes::export_answer_key))

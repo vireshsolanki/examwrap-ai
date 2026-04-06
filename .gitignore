@@ -61,6 +61,8 @@ typings/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+# Promo video assets
+promo_video/
 
 # Optional REPL history
 .node_repl_history

@@ -37,6 +37,7 @@ const NotesFormatter = React.lazy(() => import('./components/NotesFormatter'));
 const NeuralTour = React.lazy(() => import('./components/NeuralTour'));
 const ExamExportView = React.lazy(() => import('./components/ExamExportView'));
 const BetaWarningModal = React.lazy(() => import('./components/BetaWarningModal'));
+const PdfSummariser = React.lazy(() => import('./components/PdfSummariser'));
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppView>(AppView.ONBOARDING);
@@ -101,8 +102,15 @@ const App: React.FC = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string) => {
+    const handleOnboardingComplete = (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string, examCategoryId?: string, personaId?: string, toneId?: string) => {
         const newProfile = StorageService.createUserProfile(name, exam, persona, examType, studyLevel, examDate);
+        // Store config fields
+        if (examCategoryId || personaId || toneId) {
+            newProfile.examCategoryId = examCategoryId;
+            newProfile.personaId = personaId;
+            newProfile.toneId = toneId;
+            StorageService.saveUserProfile(newProfile);
+        }
         setUserProfile(newProfile);
         setView(AppView.DASHBOARD);
         setShowTour(true);
@@ -500,7 +508,7 @@ const App: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 {userProfile && (
                                     <>
-                                        {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && (
+                                        {confirmedContext && view !== AppView.DASHBOARD && view !== AppView.SUMMARY && view !== AppView.NOTES_FORMATTER && view !== AppView.PDF_SUMMARISER && (
                                             <div className="hidden md:flex items-center gap-3 text-xs border-r border-white/10 pr-4">
                                                 <span className="font-medium text-text-secondary">{confirmedContext.subjectName}</span>
                                             </div>
@@ -672,6 +680,7 @@ const App: React.FC = () => {
                             onRetakeExam={handleRetakeHistory}
                             onViewPlan={handleViewPlanHistory}
                             onOpenNotesFormatter={() => setView(AppView.NOTES_FORMATTER)}
+                            onOpenPdfSummariser={() => setView(AppView.PDF_SUMMARISER)}
                             onDeleteExam={handleDeleteExam}
                         />
                     )}
@@ -751,6 +760,15 @@ const App: React.FC = () => {
                             questions={questions}
                             onBack={() => setView(AppView.RESULTS)}
                             subjectName={confirmedContext.subjectName}
+                        />
+                    )}
+
+                    {view === AppView.PDF_SUMMARISER && (
+                        <PdfSummariser
+                            onBack={handleNavigateToDashboard}
+                            examLabel={userProfile?.targetExam || 'General'}
+                            defaultPersonaId={userProfile?.personaId || 'university_professor'}
+                            defaultToneId={userProfile?.toneId || 'supportive'}
                         />
                     )}
 

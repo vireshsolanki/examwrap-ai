@@ -13,6 +13,7 @@ interface DashboardProps {
     onViewResult?: (id: string) => void;
     onViewPlan?: (id: string) => void;
     onOpenNotesFormatter: () => void;
+    onOpenPdfSummariser: () => void;
     onDeleteExam: (id: string) => void;
 }
 
@@ -26,6 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     onViewResult,
     onViewPlan,
     onOpenNotesFormatter,
+    onOpenPdfSummariser,
     onDeleteExam
 }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'history'>('overview');
@@ -92,7 +94,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="space-y-6">
 
                     {/* Compact Grid: Reduced Height & Spacing */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
 
                         {/* 1. Resume / Start Module */}
                         <div className="h-[150px] sm:h-[180px] col-span-2 sm:col-span-1">
@@ -147,7 +149,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                         </button>
 
-                        {/* 3. Study Guides */}
+                        {/* 3. Smart Notes */}
                         <button
                             id="tour-notes"
                             onClick={onOpenNotesFormatter}
@@ -161,6 +163,24 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <p className="text-xs text-text-secondary leading-tight">Format and organize notes.</p>
                             </div>
                             <div className="flex items-center gap-2 text-[9px] font-bold text-emerald-400 uppercase tracking-widest opacity-80 group-hover:opacity-100">
+                                Open <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                        </button>
+
+                        {/* 4. PDF Summariser */}
+                        <button
+                            id="tour-pdf-summariser"
+                            onClick={onOpenPdfSummariser}
+                            className="h-[150px] sm:h-[180px] text-left glass-card p-4 sm:p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
+                        >
+                            <div>
+                                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/20 flex items-center justify-center mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                    <Activity className="w-4 h-4" />
+                                </div>
+                                <h3 className="text-base font-bold text-white mb-1">PDF Summary</h3>
+                                <p className="text-xs text-text-secondary leading-tight">Summarise any PDF (50MB).</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 uppercase tracking-widest opacity-80 group-hover:opacity-100">
                                 Open <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                         </button>

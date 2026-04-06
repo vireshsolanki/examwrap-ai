@@ -1,11 +1,62 @@
-//! Gemini API routes
-
 use axum::{
     extract::State,
     Json,
 };
-use crate::models::{ApiResponse, IdentifySubjectRequest, SubjectAnalysis, GenerateSyllabusRequest, Topic, GenerateExamRequest, Question, AnalyzePerformanceRequest, AnalyzePerformanceResponse, RegeneratePlanRequest, RevisionPlan, GenerateSummaryRequest, FormatNotesRequest};
+use crate::models::{ApiResponse, IdentifySubjectRequest, SubjectAnalysis, GenerateSyllabusRequest, Topic, GenerateExamRequest, Question, AnalyzePerformanceRequest, AnalyzePerformanceResponse, RegeneratePlanRequest, RevisionPlan, GenerateSummaryRequest, FormatNotesRequest, SummarisePdfRequest, FormatNotesConfiguredRequest};
 use crate::services::GeminiService;
+
+/// POST /api/summarise-pdf
+/// Summarises a PDF with persona/tone configuration
+pub async fn summarise_pdf(
+    State(gemini): State<GeminiService>,
+    Json(payload): Json<SummarisePdfRequest>,
+) -> Json<ApiResponse<String>> {
+    tracing::info!("Summarise PDF request received: {} mode, persona={}, tone={}", payload.length_mode, payload.persona_id, payload.tone_id);
+    
+    match gemini.summarise_pdf(
+        &payload.content,
+        payload.word_count,
+        payload.page_count,
+        &payload.length_mode,
+        &payload.persona_id,
+        &payload.tone_id,
+        &payload.exam_label,
+    ).await {
+        Ok(summary) => {
+            tracing::info!("PDF summary generated successfully");
+            Json(ApiResponse::success(summary))
+        }
+        Err(e) => {
+            tracing::error!("Failed to summarise PDF: {}", e);
+            Json(ApiResponse::error(e))
+        }
+    }
+}
+
+/// POST /api/format-notes-configured
+/// Formats notes with persona/tone configuration
+pub async fn format_notes_configured(
+    State(gemini): State<GeminiService>,
+    Json(payload): Json<FormatNotesConfiguredRequest>,
+) -> Json<ApiResponse<String>> {
+    tracing::info!("Format notes (configured) request received: persona={}, tone={}", payload.persona_id, payload.tone_id);
+    
+    match gemini.format_notes_configured(
+        &payload.rough_notes,
+        &payload.persona_id,
+        &payload.tone_id,
+        &payload.exam_label,
+    ).await {
+        Ok(notes) => {
+            tracing::info!("Notes formatted (configured) successfully");
+            Json(ApiResponse::success(notes))
+        }
+        Err(e) => {
+            tracing::error!("Failed to format notes (configured): {}", e);
+            Json(ApiResponse::error(e))
+        }
+    }
+}
 
 /// POST /api/generate-summary
 /// Generates a smart summary from provided content

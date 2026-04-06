@@ -83,3 +83,39 @@ export const generateSmartSummary = async (content: string, context: SubjectCont
 export const formatStudyNotes = async (roughNotes: string): Promise<string> => {
   return callBackend<string>('/format-notes', { roughNotes });
 };
+
+// 8. Summarise PDF Content
+export const summarisePdf = async (
+  content: string,
+  wordCount: number,
+  pageCount: number,
+  lengthMode: 'words' | 'pages',
+  personaId: string,
+  toneId: string,
+  examLabel: string
+): Promise<string> => {
+  return callBackend<string>('/summarise-pdf', {
+    content,
+    wordCount,
+    pageCount,
+    lengthMode,
+    personaId,
+    toneId,
+    examLabel,
+  });
+};
+
+// 9. Format Notes with Persona & Tone config
+export const formatStudyNotesWithConfig = async (
+  roughNotes: string,
+  personaId: string,
+  toneId: string,
+  examLabel: string
+): Promise<string> => {
+  return callBackend<string>('/format-notes-configured', {
+    roughNotes,
+    personaId,
+    toneId,
+    examLabel,
+  });
+};

@@ -151,7 +151,8 @@ export enum AppView {
   REVISION = 'REVISION',
   SUMMARY = 'SUMMARY',
   NOTES_FORMATTER = 'NOTES_FORMATTER',
-  EXAM_EXPORT = 'EXAM_EXPORT'
+  EXAM_EXPORT = 'EXAM_EXPORT',
+  PDF_SUMMARISER = 'PDF_SUMMARISER'
 }
 
 export interface SubjectAnalysis {
@@ -205,6 +206,10 @@ export interface UserProfile {
   studyLevel?: StudyLevel;
   examDate?: string; // ISO date string
   daysRemaining?: number; // Calculated from examDate
+  // Config-based fields
+  examCategoryId?: string; // e.g., 'iit_jee', 'ca', 'class_10'
+  personaId?: string;      // e.g., 'iit_professor', 'school_teacher'
+  toneId?: string;         // e.g., 'rigorous', 'supportive'
 }
 
 export interface NoteRecord {
@@ -212,4 +217,25 @@ export interface NoteRecord {
   date: string;
   title: string;
   content: string;
+}
+
+// ─── PDF Summariser Types ────────────────────────────────────────────────────
+
+export type SummaryLengthMode = 'words' | 'pages';
+
+export interface PdfSummaryConfig {
+  lengthMode: SummaryLengthMode;
+  wordCount?: number;
+  pageCount?: number;
+  personaId: string;
+  toneId: string;
+}
+
+export interface PdfSummaryRecord {
+  id: string;
+  date: string;
+  fileName: string;
+  title: string;
+  summary: string;
+  config: PdfSummaryConfig;
 }
