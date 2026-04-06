@@ -32,8 +32,13 @@ impl Config {
         let google_model_name = env::var("GOOGLE_MODEL_NAME")
             .unwrap_or_else(|_| "gemini-1.5-flash".to_string());
         
-        let bind_address = env::var("BIND_ADDRESS")
-            .unwrap_or_else(|_| "0.0.0.0:8080".to_string());
+        // Render and other PaaS environments provide the PORT environment variable.
+        // It's critical we listen on PORT if it's set, overriding any BIND_ADDRESS mistakes.
+        let bind_address = if let Ok(port) = env::var("PORT") {
+            format!("0.0.0.0:{}", port)
+        } else {
+            env::var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".to_string())
+        };
 
         let allowed_origins = env::var("ALLOWED_ORIGINS")
             .unwrap_or_else(|_| "*".to_string());
