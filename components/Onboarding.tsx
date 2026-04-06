@@ -1,46 +1,76 @@
 
 import React, { useState } from 'react';
-import { Sparkles, User, GraduationCap, AlertTriangle, Linkedin, Mail, Target, TrendingUp } from 'lucide-react';
+import { Sparkles, User, GraduationCap, AlertTriangle, Linkedin, Mail, Target, ChevronRight } from 'lucide-react';
 import { ExamPersona, ExamType, StudyLevel } from '../types';
+import { EXAM_CATEGORIES, EXAM_GROUPS, getExamCategory } from '../config/examPresets';
 
 interface OnboardingProps {
-  onComplete: (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string) => void;
+  onComplete: (name: string, exam: string, persona: ExamPersona, examType: ExamType, studyLevel: StudyLevel, examDate?: string, examCategoryId?: string, personaId?: string, toneId?: string) => void;
 }
 
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [name, setName] = useState('');
-  const [classLevel, setClassLevel] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+
+  const selectedCategory = selectedCategoryId ? getExamCategory(selectedCategoryId) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && classLevel) {
-      // Simple mapping for backward compatibility
-      let persona = ExamPersona.UNIFIED;
-      let examType = ExamType.OTHER;
-      let studyLevel = StudyLevel.INTERMEDIATE;
+    if (!name || !selectedCategoryId || !selectedCategory) return;
 
-      // Auto-detect from class level
-      if (classLevel.includes('JEE') || classLevel.includes('NEET')) {
-        persona = ExamPersona.JEE_NEET;
-        if (classLevel.includes('JEE')) examType = ExamType.JEE_MAINS;
-        if (classLevel.includes('NEET')) examType = ExamType.NEET;
-      } else if (classLevel.includes('CAT')) {
-        persona = ExamPersona.SAT_CAT;
-        examType = ExamType.CAT;
-      } else if (classLevel.includes('Class')) {
-        examType = ExamType.SCHOOL_CBSE;
-      } else if (classLevel.includes('University')) {
-        examType = ExamType.UNIVERSITY;
-      }
+    // Map category to legacy persona/examType system
+    let persona = ExamPersona.UNIFIED;
+    let examType = ExamType.OTHER;
+    let studyLevel = StudyLevel.INTERMEDIATE;
 
-      onComplete(name, classLevel, persona, examType, studyLevel, undefined);
+    // Persona mapping
+    if (['iit_jee', 'nit', 'gate'].includes(selectedCategoryId)) {
+      persona = ExamPersona.JEE_NEET;
+    } else if (['neet'].includes(selectedCategoryId)) {
+      persona = ExamPersona.JEE_NEET;
+    } else if (['ca', 'cfa'].includes(selectedCategoryId)) {
+      persona = ExamPersona.CA_CFA;
+    } else if (['cat'].includes(selectedCategoryId)) {
+      persona = ExamPersona.SAT_CAT;
+    } else if (['upsc'].includes(selectedCategoryId)) {
+      persona = ExamPersona.UPSC;
     }
+
+    // ExamType mapping
+    if (selectedCategoryId === 'iit_jee') examType = ExamType.JEE_MAINS;
+    else if (selectedCategoryId === 'neet') examType = ExamType.NEET;
+    else if (selectedCategoryId === 'cat') examType = ExamType.CAT;
+    else if (selectedCategoryId === 'gate') examType = ExamType.GATE;
+    else if (selectedCategoryId === 'upsc') examType = ExamType.UPSC;
+    else if (selectedCategoryId === 'nit') examType = ExamType.JEE_MAINS;
+    else if (selectedCategoryId.startsWith('class_10')) examType = ExamType.SCHOOL_CBSE;
+    else if (selectedCategoryId.startsWith('class_11') || selectedCategoryId.startsWith('class_12')) examType = ExamType.SCHOOL_CBSE;
+    else if (selectedCategoryId.startsWith('uni_')) examType = ExamType.UNIVERSITY;
+    else if (selectedCategoryId === 'ca' || selectedCategoryId === 'cfa') examType = ExamType.OTHER;
+
+    // StudyLevel based on group
+    if (selectedCategory.group === 'School') studyLevel = StudyLevel.INTERMEDIATE;
+    else if (selectedCategory.group === 'University') studyLevel = StudyLevel.INTERMEDIATE;
+    else if (selectedCategory.group === 'Competitive') studyLevel = StudyLevel.ADVANCED;
+    else if (selectedCategory.group === 'Professional') studyLevel = StudyLevel.ADVANCED;
+
+    onComplete(
+      name,
+      selectedCategory.label,
+      persona,
+      examType,
+      studyLevel,
+      undefined,
+      selectedCategoryId,
+      selectedCategory.defaultPersona,
+      selectedCategory.defaultTone
+    );
   };
 
   return (
-    <div className="min-h-[85vh] flex flex-col items-center justify-center p-4 animate-fade-in relative">
+    <div className="min-h-[85vh] flex flex-col items-center justify-center px-3 sm:p-4 animate-fade-in relative">
 
-      <div className="max-w-md w-full glass-card p-10 relative overflow-hidden shadow-2xl border-white/5">
+      <div className="max-w-md w-full glass-card p-6 sm:p-10 relative overflow-hidden shadow-2xl border-white/5">
         <div className="flex flex-col items-center mb-10 relative z-10">
           <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-inner">
             <Sparkles className="w-7 h-7 text-primary" />
@@ -55,6 +85,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <p className="text-sm text-text-secondary leading-relaxed">
               📱 <strong className="text-white">Quick Revision:</strong> Practice MCQs online<br />
               📄 <strong className="text-white">Exam Practice:</strong> Download question papers<br />
+              📋 <strong className="text-white">PDF Summariser:</strong> Instant study notes from PDFs<br />
               <span className="text-primary font-semibold">From your own textbook, in 30 seconds.</span>
             </p>
           </div>
@@ -80,37 +111,46 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 ml-1">
                 <GraduationCap className="w-3 h-3 text-primary opacity-50" />
-                <label className="text-[9px] font-black uppercase tracking-widest text-text-tertiary">Class/Exam</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-text-tertiary">What are you preparing for?</label>
               </div>
               <select
-                value={classLevel}
-                onChange={(e) => setClassLevel(e.target.value)}
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:border-primary/50 focus:bg-primary/5 outline-none transition-all font-bold cursor-pointer"
                 required
               >
-                <option value="">Select your class or exam</option>
-                <optgroup label="School" className="bg-gray-900">
-                  <option value="Class 8">Class 8</option>
-                  <option value="Class 9">Class 9</option>
-                  <option value="Class 10 CBSE">Class 10 CBSE</option>
-                  <option value="Class 10 ICSE">Class 10 ICSE</option>
-                  <option value="Class 11 Science">Class 11 Science</option>
-                  <option value="Class 11 Commerce">Class 11 Commerce</option>
-                  <option value="Class 12 Science">Class 12 Science</option>
-                  <option value="Class 12 Commerce">Class 12 Commerce</option>
-                </optgroup>
-                <optgroup label="Competitive Exams" className="bg-gray-900">
-                  <option value="JEE Preparation">JEE Preparation</option>
-                  <option value="NEET Preparation">NEET Preparation</option>
-                  <option value="CAT Preparation">CAT Preparation</option>
-                  <option value="GATE Preparation">GATE Preparation</option>
-                </optgroup>
-                <optgroup label="Other" className="bg-gray-900">
-                  <option value="University Student">University Student</option>
-                  <option value="Other">Other</option>
-                </optgroup>
+                <option value="">Select your exam / course</option>
+                {EXAM_GROUPS.map((group) => (
+                  <optgroup key={group} label={`── ${group} ──`} className="bg-gray-900">
+                    {EXAM_CATEGORIES.filter(c => c.group === group).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.icon} {cat.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
-              <p className="text-[9px] text-text-tertiary opacity-60 ml-1">This helps us create better questions for you</p>
+
+              {selectedCategory && (
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-base">{selectedCategory.icon}</span>
+                    <span className="text-xs font-bold text-white">{selectedCategory.label}</span>
+                  </div>
+                  <p className="text-[10px] text-text-secondary">{selectedCategory.description}</p>
+                  {selectedCategory.subStreams && selectedCategory.subStreams.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {selectedCategory.subStreams.map(ss => (
+                        <span key={ss.id} className="text-[8px] px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-text-tertiary font-bold">
+                          {ss.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[9px] text-text-tertiary opacity-60 ml-1">This customizes question style, difficulty, and AI teaching persona</p>
             </div>
           </div>
 
@@ -126,7 +166,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
           <button
             type="submit"
-            disabled={!name || !classLevel}
+            disabled={!name || !selectedCategoryId}
             className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primaryHover hover:to-blue-700 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-20 disabled:grayscale text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20"
           >
             Launch Intelligence

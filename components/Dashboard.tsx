@@ -13,6 +13,7 @@ interface DashboardProps {
     onViewResult?: (id: string) => void;
     onViewPlan?: (id: string) => void;
     onOpenNotesFormatter: () => void;
+    onOpenPdfSummariser: () => void;
     onDeleteExam: (id: string) => void;
 }
 
@@ -26,6 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     onViewResult,
     onViewPlan,
     onOpenNotesFormatter,
+    onOpenPdfSummariser,
     onDeleteExam
 }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'history'>('overview');
@@ -50,12 +52,12 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
 
     return (
-        <div className="max-w-5xl mx-auto mt-6 px-4 pb-12 animate-fade-in">
+        <div className="max-w-5xl mx-auto mt-4 sm:mt-6 px-3 sm:px-4 pb-12 animate-fade-in">
 
             {/* Compact Header */}
             <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-white/5">
                 <div className="text-center md:text-left">
-                    <h1 className="text-2xl font-extrabold text-white tracking-tight mb-0.5">
+                    <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-0.5">
                         <span className="text-primary">{user.name}</span>
                     </h1>
                     <p className="text-text-secondary text-xs font-medium">
@@ -70,7 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             {/* Clean Tabs */}
-            <nav id="tour-tabs" className="flex items-center gap-6 mb-6 border-b border-white/5 no-scrollbar justify-center md:justify-start">
+            <nav id="tour-tabs" className="flex items-center gap-4 sm:gap-6 mb-6 border-b border-white/5 no-scrollbar overflow-x-auto justify-center md:justify-start">
                 {['overview', 'plans', 'history'].map((tab) => (
                     <button
                         key={tab}
@@ -92,10 +94,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="space-y-6">
 
                     {/* Compact Grid: Reduced Height & Spacing */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
 
                         {/* 1. Resume / Start Module */}
-                        <div className="h-[180px]">
+                        <div className="h-[150px] sm:h-[180px] col-span-2 sm:col-span-1">
                             {activeContext && onResumeSession ? (
                                 <button
                                     onClick={onResumeSession}
@@ -133,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <button
                             id="tour-new-exam"
                             onClick={onNewSession}
-                            className="h-[180px] text-left glass-card p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
+                            className="h-[150px] sm:h-[180px] text-left glass-card p-4 sm:p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
                         >
                             <div>
                                 <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/20 flex items-center justify-center mb-4 group-hover:bg-purple-500 group-hover:text-white transition-colors">
@@ -147,11 +149,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                         </button>
 
-                        {/* 3. Study Guides */}
+                        {/* 3. Smart Notes */}
                         <button
                             id="tour-notes"
                             onClick={onOpenNotesFormatter}
-                            className="h-[180px] text-left glass-card p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
+                            className="h-[150px] sm:h-[180px] text-left glass-card p-4 sm:p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
                         >
                             <div>
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
@@ -164,35 +166,53 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 Open <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                         </button>
+
+                        {/* 4. PDF Summariser */}
+                        <button
+                            id="tour-pdf-summariser"
+                            onClick={onOpenPdfSummariser}
+                            className="h-[150px] sm:h-[180px] text-left glass-card p-4 sm:p-5 group flex flex-col justify-between hover:bg-white/[0.1] transition-colors"
+                        >
+                            <div>
+                                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/20 flex items-center justify-center mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                    <Activity className="w-4 h-4" />
+                                </div>
+                                <h3 className="text-base font-bold text-white mb-1">PDF Summary</h3>
+                                <p className="text-xs text-text-secondary leading-tight">Summarise any PDF (50MB).</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 uppercase tracking-widest opacity-80 group-hover:opacity-100">
+                                Open <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                        </button>
                     </div>
 
                     {/* Compact Stats Row */}
-                    <div id="tour-stats" className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="glass-card p-5 flex flex-col justify-between h-32 group hover:border-primary/40">
+                    <div id="tour-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="glass-card p-4 sm:p-5 flex flex-col justify-between h-28 sm:h-32 group hover:border-primary/40">
                             <span className="text-[9px] font-bold text-primary uppercase tracking-wider">Score</span>
                             <div>
-                                <div className="text-2xl font-black text-white mb-2">{user.xp.toLocaleString()}</div>
+                                <div className="text-xl sm:text-2xl font-black text-white mb-2">{user.xp.toLocaleString()}</div>
                                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                                     <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-secondary/40">
+                        <div className="glass-card p-4 sm:p-5 flex flex-col justify-between h-28 sm:h-32 hover:border-secondary/40">
                             <span className="text-[9px] font-bold text-secondary uppercase tracking-wider">Level</span>
                             <div>
-                                <div className="text-2xl font-black text-white mb-1">LVL {user.level}</div>
+                                <div className="text-xl sm:text-2xl font-black text-white mb-1">LVL {user.level}</div>
                                 <p className="text-[8px] text-text-tertiary uppercase font-bold tracking-wide">{1000 - (user.xp % 1000)} XP to go</p>
                             </div>
                         </div>
 
                         <div
                             onClick={() => setActiveTab('history')}
-                            className="glass-card p-5 flex flex-col justify-between h-32 cursor-pointer group hover:bg-white/[0.1]"
+                            className="glass-card p-4 sm:p-5 flex flex-col justify-between h-28 sm:h-32 cursor-pointer group hover:bg-white/[0.1]"
                         >
                             <span className="text-[9px] font-bold text-text-tertiary uppercase tracking-wider">Tests</span>
                             <div>
-                                <div className="text-2xl font-black text-white mb-1">{user.history.length}</div>
+                                <div className="text-xl sm:text-2xl font-black text-white mb-1">{user.history.length}</div>
                                 <div className="flex items-center gap-1 text-[8px] font-bold text-text-secondary group-hover:text-white transition-colors uppercase tracking-wide">
                                     View All <ArrowRight className="w-2.5 h-2.5" />
                                 </div>
@@ -264,25 +284,25 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 text-[9px] font-bold uppercase text-primary tracking-widest bg-white/[0.01]">
-                                    <th className="p-6">Date</th>
-                                    <th className="p-6">Subject</th>
-                                    <th className="p-6 text-center">Score</th>
-                                    <th className="p-6 text-right pr-8">Actions</th>
+                                    <th className="p-3 sm:p-6">Date</th>
+                                    <th className="p-3 sm:p-6">Subject</th>
+                                    <th className="p-3 sm:p-6 text-center">Score</th>
+                                    <th className="p-3 sm:p-6 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {user.history.map((item) => (
                                     <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="p-6 text-xs text-text-tertiary">
+                                        <td className="p-3 sm:p-6 text-xs text-text-tertiary">
                                             {(() => {
                                                 const d = new Date(item.date);
                                                 return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
                                             })()}
                                         </td>
-                                        <td className="p-6 text-sm text-white font-bold">
+                                        <td className="p-3 sm:p-6 text-xs sm:text-sm text-white font-bold truncate max-w-[120px] sm:max-w-none">
                                             {item.subjectName}
                                         </td>
-                                        <td className="p-6 text-center">
+                                        <td className="p-3 sm:p-6 text-center">
                                             <span className={`
                                                 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest border
                                                 ${item.score / item.totalQuestions >= 0.7 ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : 'text-rose-400 bg-rose-400/10 border-rose-400/20'}
@@ -290,8 +310,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                 {Math.round((item.score / item.totalQuestions) * 100)}%
                                             </span>
                                         </td>
-                                        <td className="p-6 text-right pr-8">
-                                            <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <td className="p-3 sm:p-6 text-right">
+                                            <div className="flex items-center justify-end gap-2 sm:gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                                                 {[
                                                     { icon: Calendar, onClick: () => onViewPlan && onViewPlan(item.id), color: 'hover:text-primary', title: "View Revision Plan" },
                                                     { icon: BarChart, onClick: () => onViewResult && onViewResult(item.id), color: 'hover:text-secondary', title: "View Analysis" },

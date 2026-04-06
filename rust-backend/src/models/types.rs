@@ -245,6 +245,29 @@ pub struct IdentifySubjectRequest {
     pub content: String,
 }
 
+/// Request body for summarise-pdf endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SummarisePdfRequest {
+    pub content: String,
+    pub word_count: u32,
+    pub page_count: u32,
+    pub length_mode: String, // "words" or "pages"
+    pub persona_id: String,
+    pub tone_id: String,
+    pub exam_label: String,
+}
+
+/// Request body for format-notes-configured endpoint
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormatNotesConfiguredRequest {
+    pub rough_notes: String,
+    pub persona_id: String,
+    pub tone_id: String,
+    pub exam_label: String,
+}
+
 /// Generic API response wrapper
 #[derive(Debug, Serialize)]
 pub struct ApiResponse<T> {

@@ -360,6 +360,125 @@ Rough Notes Input:
         self.call_gemini_text(&prompt).await
     }
 
+    /// Summarise PDF content with persona/tone configuration
+    pub async fn summarise_pdf(
+        &self,
+        content: &str,
+        word_count: u32,
+        page_count: u32,
+        length_mode: &str,
+        persona_id: &str,
+        tone_id: &str,
+        exam_label: &str,
+    ) -> Result<String, String> {
+        let persona_prompt = Self::get_persona_system_prompt(persona_id);
+        let tone_instruction = Self::get_tone_instruction(tone_id);
+
+        let length_instruction = if length_mode == "pages" {
+            format!("TARGET LENGTH: Approximately {} page(s) when printed (roughly {} words per page).", page_count, 400)
+        } else {
+            format!("TARGET LENGTH: Approximately {} words.", word_count)
+        };
+
+        let prompt = format!(
+            r#"{persona_prompt}
+
+{tone_instruction}
+
+TASK: Summarize the uploaded PDF document for a student preparing for {exam_label}.
+{length_instruction}
+
+OUTPUT STRUCTURE:
+1. **Title** — Create a clear, descriptive title for the summary.
+2. **Overview** — A 2-3 sentence executive summary of the entire document.
+3. **Key Topics** — Break down into major topics/chapters with:
+   - Topic heading
+   - Core concepts explained concisely
+   - Key formulas/definitions/facts (if applicable)
+   - Important dates/figures/names (if applicable)
+4. **Critical Points** — Bullet list of must-remember items.
+5. **Quick Revision Notes** — Ultra-condensed key takeaways for last-minute revision.
+
+RULES:
+- Prioritize high-yield exam-relevant content for {exam_label}.
+- Maintain academic accuracy — never fabricate facts.
+- If content has "[USER HIGHLIGHTS:]" sections, prioritize those.
+- Format with proper Markdown (headers, bold, lists).
+
+Source Material (first 30k chars):
+{content}"#,
+            persona_prompt = persona_prompt,
+            tone_instruction = tone_instruction,
+            exam_label = exam_label,
+            length_instruction = length_instruction,
+            content = &content[..content.len().min(30000)]
+        );
+
+        self.call_gemini_text(&prompt).await
+    }
+
+    /// Format rough notes with persona/tone configuration
+    pub async fn format_notes_configured(
+        &self,
+        rough_notes: &str,
+        persona_id: &str,
+        tone_id: &str,
+        exam_label: &str,
+    ) -> Result<String, String> {
+        let persona_prompt = Self::get_persona_system_prompt(persona_id);
+        let tone_instruction = Self::get_tone_instruction(tone_id);
+
+        let prompt = format!(
+            r#"{persona_prompt}
+
+{tone_instruction}
+
+TASK: Convert rough study notes into beautifully formatted, exam-ready study material for a student preparing for {exam_label}.
+
+OUTPUT GUIDELINES:
+- Use Markdown formatting (headers, bold, lists, tables where needed).
+- Fix grammar and improve clarity while keeping the student's intent.
+- Organize into logical sections.
+- Add a "Key Takeaways" section at the end.
+- Add "Exam Tips" where relevant to {exam_label}.
+- Highlight formulas/definitions with bold markers.
+
+Rough Notes Input:
+{rough_notes}"#,
+            persona_prompt = persona_prompt,
+            tone_instruction = tone_instruction,
+            exam_label = exam_label,
+            rough_notes = &rough_notes[..rough_notes.len().min(30000)]
+        );
+
+        self.call_gemini_text(&prompt).await
+    }
+
+    /// Get persona system prompt by ID
+    fn get_persona_system_prompt(persona_id: &str) -> &'static str {
+        match persona_id {
+            "school_teacher" => "You are a warm, experienced school teacher with 20+ years of classroom experience. Always explain step-by-step, use real-life examples, reference NCERT/ICSE textbook language, and encourage students with positive reinforcement. Use mnemonics and highlight common mistakes.",
+            "iit_professor" => "You are a senior IIT professor known for producing toppers. Focus on DEEP conceptual understanding, derive every formula, include numerical problems with step-by-step solutions. Point out common traps and trick questions. Cross-link concepts across subjects.",
+            "medical_mentor" => "You are an experienced NEET mentor and medical college professor. Anchor explanations in NCERT Biology language, use clinical case studies. Include assertion-reasoning patterns. Highlight high-yield topics that appear repeatedly in NEET.",
+            "finance_expert" => "You are an executive-level chartered accountant and CFA charterholder. Reference specific accounting standards (Ind AS/IFRS/US GAAP) by number. Use real-world company examples. Tax explanations must cite specific sections. Focus on precision and regulatory compliance.",
+            "ias_mentor" => "You are a retired IAS officer turned UPSC mentor. Analyze every topic from multiple dimensions: social, economic, political, ethical. Link current affairs to static syllabus. Train analytical thinking with 'Critically Analyze' prompts.",
+            "aptitude_coach" => "You are a top CAT/GMAT coach. Focus on speed and efficiency — show shortcut methods first. For Verbal: passage deconstruction. For Quant: pattern recognition. Include timed practice suggestions and elimination strategies.",
+            "university_professor" | _ => "You are a distinguished university professor with a PhD. Provide comprehensive, academically rigorous explanations. Balance theory with practical applications. Use Definition → Explanation → Example → Application structure.",
+        }
+    }
+
+    /// Get tone instruction by ID
+    fn get_tone_instruction(tone_id: &str) -> &'static str {
+        match tone_id {
+            "supportive" => "Tone: Be warm, encouraging, and patient. Never say 'this is easy'. Use phrases like 'Great question!', 'Let's break this down together'. Celebrate small wins. End responses with encouragement.",
+            "rigorous" => "Tone: Be direct, precise, and exam-focused. No filler. Use precise academic language. Be methodical and numbered. Flag edge cases. Use 'CRITICAL:', 'NOTE:', 'TRAP:' markers for important distinctions.",
+            "analytical" => "Tone: Be thoughtful and analytical. Present multiple viewpoints before concluding. Use 'On one hand... on the other hand...' structures. Ask reflective counter-questions. Include 'Think about it:' prompts.",
+            "professional" => "Tone: Be professional, well-structured, and concise. Use industry-standard terminology. Structure with clear headers and sub-points. Be factual and precise — avoid ambiguity.",
+            "friendly" => "Tone: Be friendly and conversational, like a smart study buddy. Use casual but accurate language. Include relatable analogies. Make complex things sound interesting. Say 'Think of it this way...'",
+            _ => "Tone: Be clear, structured, and helpful. Focus on making concepts easy to understand.",
+        }
+    }
+
     /// Regenerate revision plan for custom duration (matches regenerateRevisionPlan in geminiService.ts)
     pub async fn regenerate_revision_plan(
         &self,

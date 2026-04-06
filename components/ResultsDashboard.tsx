@@ -43,10 +43,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     };
 
     return (
-        <div className="max-w-5xl mx-auto mt-6 px-4 pb-12 fade-in">
+        <div className="max-w-5xl mx-auto mt-4 sm:mt-6 px-3 sm:px-4 pb-12 fade-in">
             <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                         Assessment Analysis
                         {scorePercentage > 80 && <span className="text-xl animate-bounce">🎉</span>}
                     </h1>
@@ -103,7 +103,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-6">
                 <div className="glass-panel p-4 rounded-xl">
                     <div className="text-[9px] text-text-tertiary uppercase font-bold tracking-widest mb-1 font-mono">Accuracy</div>
                     <div className="flex items-baseline gap-2">
@@ -131,8 +131,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+                <div className="space-y-4">
                     <div className="glass-panel p-6 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
                         <div className="flex items-center gap-2 mb-3">
@@ -254,8 +254,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                     </div>
                 </div>
 
-                <div className="lg:col-span-1">
-                    <div className="glass-panel p-6 rounded-xl h-full flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-b from-surface to-background min-h-[300px]">
+                <div className="order-first lg:order-last">
+                    <div className="glass-panel p-6 rounded-xl lg:sticky lg:top-24 flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-b from-surface to-background">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[80px]"></div>
                         <div className="w-48 h-48 relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
